@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Multiset;
@@ -25,9 +26,8 @@ import com.google.common.collect.Multiset;
  * See the License for the specific language governing permissions and
  * limitations under the License. 
  */
-
-public class TestConTest {
-    @Rule public final ConcurrentTest context = new ConcurrentTest();
+@RunWith(ConcurrentTestRunner.class) public class TestConTest {
+    @Rule public ConcurrentTest context;
 
     enum MultisetActions
     {
@@ -42,7 +42,7 @@ public class TestConTest {
         RemovingThread
     }
 
-    static class AddsBeforeRemove extends Schedule
+    static class AddsBeforeRemove extends BaseSchedule
     {
         {
             action(FirstAdd).isBefore(Remove);
@@ -50,10 +50,9 @@ public class TestConTest {
         }
     }
 
-    @Test public void concurrentTest()
+    @Test @Schedule(AddsBeforeRemove.class) public void concurrentTest()
     {
-        final Multiset<Object> multiset =
-                context.testing(ConcurrentHashMultiset.create()).as(new TypeLiteral<Multiset<Object>>() {});
+        final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
 
         context.checking(new TestRun() {
             {
@@ -65,4 +64,41 @@ public class TestConTest {
             }
         });
     }
+    //
+    //    @Test @Schedule(AddsBeforeRemove.class) public void concurrentTestX()
+    //    {
+    //        final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
+    //
+    //        new TestThread() {
+    //            {
+    //                action(FirstAdd).is(multiset).add(42);
+    //                action(SecondAdd).is(multiset).add(42);
+    //            }
+    //        };
+    //
+    //        new TestThread() {
+    //            {
+    //                action(Remove).is(multiset).remove(42);
+    //            }
+    //        };
+    //
+    //        asserting(that(multiset).size(), equalTo(1));
+    //    }
+
+    //    @Test public void simpleConcurrentTest()
+    //    {
+    //        final Multiset<Object> multiset =
+    //                context.testing(ConcurrentHashMultiset.create()).as(new TypeLiteral<Multiset<Object>>() {});
+    //
+    //        context.checking(new TestRun() {
+    //            {
+    //                // implcit sequence
+    //                inThread(AddingThread).call(multiset).add(42);
+    //                inThread(RemovingThread).call(multiset).remove(42);
+    //                inThread(AddingThread).call(multiset).add(42);
+    //
+    //                asserting(that(multiset).size(), equalTo(1));
+    //            }
+    //        });
+    //    }
 }

@@ -1,7 +1,15 @@
 package com.lexicalscope.contest;
 
-import com.lexicalscope.fluentreflection.dynamicproxy.FluentProxy;
-import com.lexicalscope.fluentreflection.dynamicproxy.Implementing;
+import java.lang.reflect.Method;
+
+import javassist.util.proxy.MethodHandler;
+import javassist.util.proxy.ProxyFactory;
+import javassist.util.proxy.ProxyObject;
+
+import org.objenesis.Objenesis;
+import org.objenesis.ObjenesisStd;
+
+import com.google.common.base.Defaults;
 
 /*
  * Copyright 2011 Tim Wood
@@ -20,16 +28,46 @@ import com.lexicalscope.fluentreflection.dynamicproxy.Implementing;
  */
 
 public class TestingStub<S> {
+    private final ProxyFactory proxyFactory = ConcurrentTest.proxyFactory();
     private final S classUnderTest;
 
     public TestingStub(final S classUnderTest) {
         this.classUnderTest = classUnderTest;
     }
 
-    public <T> T as(final TypeLiteral<T> typeLiteral)
-    {
-        return FluentProxy.dynamicProxy(new Implementing<T>(typeLiteral.getRawType()) {
+    @SuppressWarnings("unchecked") public S create() {
+        final Class<? extends Object> klass = classUnderTest.getClass();
 
-        });
+        try {
+            proxyFactory.setSuperclass(klass);
+            proxyFactory.setInterfaces(new Class[] { ContestObjectUnderTest.class });
+
+            final Objenesis o = new ObjenesisStd();
+            final Object proxyInstance = o.newInstance(proxyFactory.createClass());
+            ((ProxyObject) proxyInstance).setHandler(new MethodHandler() {
+                CallRecord callRecord;
+
+                public Object invoke(final Object arg0, final Method arg1, final Method arg2, final Object[] arg3)
+                        throws Throwable {
+                    if (arg1.getName().equals("contest_tellMeAboutTheNextInvokation"))
+                    {
+                        callRecord = (CallRecord) arg3[0];
+                    }
+                    else
+                    {
+                        callRecord.callOn(classUnderTest, arg1, arg3);
+                        callRecord = null;
+                    }
+                    if (arg1.getReturnType().isPrimitive())
+                    {
+                        return Defaults.defaultValue(arg1.getReturnType());
+                    }
+                    return null;
+                }
+            });
+            return (S) proxyInstance;
+        } catch (final IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

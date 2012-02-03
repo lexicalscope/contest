@@ -1,5 +1,6 @@
 package com.lexicalscope.contest;
 
+
 /*
  * Copyright 2011 Tim Wood
  *
@@ -16,6 +17,9 @@ package com.lexicalscope.contest;
  * limitations under the License. 
  */
 
-public @interface Schedule {
-    Class<?>[] value();
+public class BaseSchedule {
+    public ScheduleRecord action(final Enum firstadd) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

@@ -1,5 +1,10 @@
 package com.lexicalscope.contest;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
+
 import org.hamcrest.Matcher;
 
 import com.google.common.collect.LinkedHashMultimap;
@@ -20,21 +25,20 @@ import com.google.common.collect.LinkedHashMultimap;
  * limitations under the License. 
  */
 
-public class TestRun {
+public class TestRun implements CallRecord {
     private final LinkedHashMultimap<Enum, ThreadRecord> threads = LinkedHashMultimap.<Enum, ThreadRecord>create();
+    private final List<Assertion> assertions = new ArrayList<Assertion>();
+    private Object target;
+    private Method method;
+    private Object[] args;
 
-    protected ActionRecord action(final Enum action) {
-        // TODO Auto-generated method stub
-        return null;
+    protected <T> T that(final T objectUnderTest) {
+        ((ContestObjectUnderTest) objectUnderTest).contest_tellMeAboutTheNextInvokation(this);
+        return objectUnderTest;
     }
 
-    protected <T> T that(final T object) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    protected <T> void asserting(final T size, final Matcher<T> equalTo) {
-        // TODO Auto-generated method stub
+    protected <T> void asserting(final T objectUnderTest, final Matcher<T> matcher) {
+        assertions.add(new Assertion(target, method, args, matcher));
     }
 
     protected ThreadRecord inThread(final Enum thread) {
@@ -43,8 +47,19 @@ public class TestRun {
         return threadRecord;
     }
 
-    public void launch() {
-        // TODO Auto-generated method stub
+    public void execute() throws Throwable {
+        for (final Entry<Enum, ThreadRecord> threadEntry : threads.entries()) {
+            threadEntry.getValue().actionRecord.execute();
+        }
 
+        for (final Assertion assertion : assertions) {
+            assertion.execute();
+        }
+    }
+
+    public void callOn(final Object target, final Method method, final Object[] args) {
+        this.target = target;
+        this.method = method;
+        this.args = args;
     }
 }

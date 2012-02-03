@@ -1,5 +1,7 @@
 package com.lexicalscope.contest;
 
+import javassist.util.proxy.ProxyFactory;
+
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -21,22 +23,36 @@ import org.junit.runners.model.Statement;
  */
 
 public class ConcurrentTest implements MethodRule {
+    private static ThreadLocal<ProxyFactory> proxyFactory = new ThreadLocal<ProxyFactory>();
     private TestRun testRun;
 
+    public ConcurrentTest(final ProxyFactory proxyFactory) {
+        ConcurrentTest.proxyFactory.set(proxyFactory);
+    }
     public void checking(final TestRun testRun) {
         this.testRun = testRun;
     }
 
-    public Statement apply(final Statement statement, final FrameworkMethod method, final Object object) {
-        return new Statement() {
-            @Override public void evaluate() throws Throwable {
-                statement.evaluate();
-                testRun.launch();
-            }
-        };
+    public <T> T testing(final T classUnderTest) {
+        return new TestingStub<T>(classUnderTest).create();
     }
 
-    public static <T> TestingStub<T> testing(final T classUnderTest) {
-        return new TestingStub<T>(classUnderTest);
+    void endTest()
+    {
+        proxyFactory.set(null);
+    }
+
+    static ProxyFactory proxyFactory()
+    {
+        return proxyFactory.get();
+    }
+
+    public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {
+        return new Statement() {
+            @Override public void evaluate() throws Throwable {
+                base.evaluate();
+                testRun.execute();
+            }
+        };
     }
 }

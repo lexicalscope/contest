@@ -1,5 +1,7 @@
 package com.lexicalscope.contest;
 
+import java.lang.reflect.Method;
+
 /*
  * Copyright 2011 Tim Wood
  *
@@ -16,6 +18,6 @@ package com.lexicalscope.contest;
  * limitations under the License. 
  */
 
-public @interface Schedule {
-    Class<?>[] value();
+public interface CallRecord {
+    void callOn(Object target, Method method, Object[] args);
 }

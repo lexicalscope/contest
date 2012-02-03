@@ -16,6 +16,6 @@ package com.lexicalscope.contest;
  * limitations under the License. 
  */
 
-public @interface Schedule {
-    Class<?>[] value();
+public interface ContestObjectUnderTest {
+    void contest_tellMeAboutTheNextInvokation(CallRecord record);
 }

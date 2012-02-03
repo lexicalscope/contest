@@ -3,6 +3,9 @@ package com.lexicalscope.contest;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import org.hamcrest.Matcher;
+import org.hamcrest.MatcherAssert;
+
 /*
  * Copyright 2011 Tim Wood
  *
@@ -19,20 +22,22 @@ import java.lang.reflect.Method;
  * limitations under the License. 
  */
 
-public class ActionRecord implements CallRecord {
-    private Object target;
-    private Method method;
-    private Object[] args;
+public class Assertion {
+    private final Matcher matcher;
+    private final Object target;
+    private final Method method;
+    private final Object[] args;
 
-    <T> T is(final T objectUnderTest)
-    {
-        ((ContestObjectUnderTest) objectUnderTest).contest_tellMeAboutTheNextInvokation(this);
-        return objectUnderTest;
+    public Assertion(final Object target, final Method method, final Object[] args, final Matcher<?> matcher) {
+        this.target = target;
+        this.method = method;
+        this.args = args;
+        this.matcher = matcher;
     }
 
     public void execute() throws Throwable {
         try {
-            method.invoke(target, args);
+            MatcherAssert.assertThat(method.invoke(target, args), matcher);
         } catch (final IllegalArgumentException e) {
             throw new RuntimeException(e);
         } catch (final IllegalAccessException e) {
@@ -40,12 +45,5 @@ public class ActionRecord implements CallRecord {
         } catch (final InvocationTargetException e) {
             throw e.getCause();
         }
-    }
-
-    public void callOn(final Object target, final Method method, final Object[] args) {
-        this.target = target;
-        this.method = method;
-        this.args = args;
-
     }
 }

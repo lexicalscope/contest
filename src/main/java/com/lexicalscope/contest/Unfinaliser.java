@@ -3,7 +3,6 @@ package com.lexicalscope.contest;
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
-import javassist.CtMethod;
 import javassist.Modifier;
 import javassist.NotFoundException;
 import javassist.Translator;
@@ -35,15 +34,6 @@ public class Unfinaliser implements Translator {
 
         if (Modifier.isFinal(modifiers)) {
             ctClass.setModifiers(Modifier.clear(modifiers, Modifier.FINAL));
-        }
-        System.out.println(classname);
-        if (classname.equals("org.junit.runners.BlockJUnit4ClassRunner"))
-        {
-            final CtMethod createTest = ctClass.getMethod(
-                    "createTest",
-                    "()Ljava/lang/Object;");
-            createTest
-                    .setBody("{Object instance = getTestClass().getOnlyConstructor().newInstance(new Object[0]); com.lexicalscope.contest.ConcurrentTestRunner.initalise(instance); return instance;}");
         }
     }
 }

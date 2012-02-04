@@ -2,6 +2,7 @@ package com.lexicalscope.contest;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -48,8 +49,28 @@ public class TestRun implements CallRecord {
     }
 
     public void execute() throws Throwable {
-        for (final Entry<Enum, ThreadRecord> threadEntry : threads.entries()) {
-            threadEntry.getValue().actionRecord.execute();
+        final List<Thread> threadList = new ArrayList<Thread>();
+        for (final Entry<Enum, Collection<ThreadRecord>> threadEntry : threads.asMap().entrySet()) {
+            final List<ThreadRecord> recordsForThread = new ArrayList<ThreadRecord>(threadEntry.getValue());
+            threadList.add(new Thread() {
+                @Override public void run() {
+                    for (final ThreadRecord threadRecord : recordsForThread) {
+                        try {
+                            threadRecord.actionRecord.execute();
+                        } catch (final Throwable e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+            });
+        }
+
+        for (final Thread thread : threadList) {
+            thread.start();
+        }
+
+        for (final Thread thread : threadList) {
+            thread.join();
         }
 
         for (final Assertion assertion : assertions) {

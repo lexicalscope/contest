@@ -48,7 +48,7 @@ public class TestRun implements CallRecord {
         return threadRecord;
     }
 
-    public void execute() throws Throwable {
+    public void execute(final BaseSchedule schedule) throws Throwable {
         final List<Thread> threadList = new ArrayList<Thread>();
         for (final Entry<Enum, Collection<ThreadRecord>> threadEntry : threads.asMap().entrySet()) {
             final List<ThreadRecord> recordsForThread = new ArrayList<ThreadRecord>(threadEntry.getValue());
@@ -56,7 +56,9 @@ public class TestRun implements CallRecord {
                 @Override public void run() {
                     for (final ThreadRecord threadRecord : recordsForThread) {
                         try {
+                            schedule.enforceSchedule_beforeAction(threadRecord.action);
                             threadRecord.actionRecord.execute();
+                            schedule.enforceSchedule_afterAction(threadRecord.action);
                         } catch (final Throwable e) {
                             throw new RuntimeException(e);
                         }

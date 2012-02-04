@@ -1,5 +1,7 @@
 package com.lexicalscope.contest;
 
+import java.util.ArrayList;
+import java.util.List;
 
 /*
  * Copyright 2011 Tim Wood
@@ -18,8 +20,46 @@ package com.lexicalscope.contest;
  */
 
 public class BaseSchedule {
-    public ScheduleRecord action(final Enum firstadd) {
-        // TODO Auto-generated method stub
-        return null;
+    private final List<Enum> trace = new ArrayList<Enum>();
+    private final List<ScheduleRecord> scheduleRecords = new ArrayList<ScheduleRecord>();
+
+    public ScheduleRecord action(final Enum action) {
+        final ScheduleRecord scheduleRecord = new ScheduleRecord(this);
+        scheduleRecord.addFirst(action);
+        scheduleRecords.add(scheduleRecord);
+        return scheduleRecord;
+    }
+
+    public synchronized void enforceSchedule_beforeAction(final Enum action) {
+        while (!allowed(action))
+        {
+            try {
+                wait();
+            } catch (final InterruptedException e) {
+                // nothing yet
+            }
+        }
+    }
+
+    private boolean allowed(final Enum action) {
+        for (final ScheduleRecord scheduleRecord : scheduleRecords) {
+            final List<Enum> actions = scheduleRecord.actions;
+            if (actions.contains(action))
+            {
+                final int index = actions.indexOf(action);
+                for (int i = 0; i < index; i++) {
+                    if (!trace.contains(actions.get(i)))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    public synchronized void enforceSchedule_afterAction(final Enum action) {
+        trace.add(action);
+        notifyAll();
     }
 }

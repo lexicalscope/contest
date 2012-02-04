@@ -1,5 +1,8 @@
 package com.lexicalscope.contest;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 /*
  * Copyright 2011 Tim Wood
  *
@@ -16,6 +19,6 @@ package com.lexicalscope.contest;
  * limitations under the License. 
  */
 
-public @interface Schedule {
-    Class<?>[] value();
+@Retention(RetentionPolicy.RUNTIME) public @interface Schedule {
+    Class<? extends BaseSchedule> value();
 }

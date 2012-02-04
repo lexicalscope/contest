@@ -50,7 +50,15 @@ import com.google.common.collect.Multiset;
         }
     }
 
-    @Test @Schedule(AddsBeforeRemove.class) public void concurrentTest()
+    static class RemoveBeforeAdds extends BaseSchedule
+    {
+        {
+            action(Remove).isBefore(FirstAdd);
+            action(Remove).isBefore(SecondAdd);
+        }
+    }
+
+    @Test @Schedule(AddsBeforeRemove.class) public void removeAfterTwoAddsLeavesSizeOne()
     {
         final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
 
@@ -64,6 +72,22 @@ import com.google.common.collect.Multiset;
             }
         });
     }
+
+    @Test @Schedule(RemoveBeforeAdds.class) public void concurrentTest()
+    {
+        final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
+
+        context.checking(new TestRun() {
+            {
+                inThread(AddingThread).action(FirstAdd).is(multiset).add(42);
+                inThread(AddingThread).action(SecondAdd).is(multiset).add(42);
+                inThread(RemovingThread).action(Remove).is(multiset).remove(42);
+
+                asserting(that(multiset).size(), equalTo(2));
+            }
+        });
+    }
+
     //
     //    @Test @Schedule(AddsBeforeRemove.class) public void concurrentTestX()
     //    {

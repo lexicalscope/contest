@@ -34,8 +34,6 @@ import org.junit.runner.notification.RunNotifier;
  */
 
 public class ConcurrentTestRunner extends Runner {
-    private TestRun testRun;
-
     private Object underlyingRunner;
     private Class<?> underlyingRunnerClass;
 

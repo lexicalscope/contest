@@ -1,8 +1,5 @@
 package com.lexicalscope.contest;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /*
  * Copyright 2011 Tim Wood
  *
@@ -19,19 +16,6 @@ import java.util.List;
  * limitations under the License. 
  */
 
-public class ScheduleRecord {
-    public final List<Enum> actions = new ArrayList<Enum>();
-    private final BaseSchedule baseSchedule;
+public class Trace {
 
-    public ScheduleRecord(final BaseSchedule baseSchedule) {
-        this.baseSchedule = baseSchedule;
-    }
-
-    public void isBefore(final Enum action) {
-        actions.add(action);
-    }
-
-    void addFirst(final Enum action) {
-        actions.add(action);
-    }
 }

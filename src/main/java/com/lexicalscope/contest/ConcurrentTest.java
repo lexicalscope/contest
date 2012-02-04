@@ -51,7 +51,9 @@ public class ConcurrentTest implements MethodRule {
         return new Statement() {
             @Override public void evaluate() throws Throwable {
                 base.evaluate();
-                testRun.execute();
+                System.out.println(method.getMethod());
+                final Schedule schedule = method.getMethod().getAnnotation(Schedule.class);
+                testRun.execute(schedule.value().newInstance());
             }
         };
     }

@@ -1,6 +1,5 @@
 package com.lexicalscope.contest;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -34,6 +33,8 @@ import org.junit.runner.notification.RunNotifier;
  */
 
 public class ConcurrentTestRunner extends Runner {
+    public static final ThreadLocal<ProxyFactory> proxyFactory = new ThreadLocal<ProxyFactory>();
+
     private Object underlyingRunner;
     private Class<?> underlyingRunnerClass;
 
@@ -41,19 +42,19 @@ public class ConcurrentTestRunner extends Runner {
 
     private final ClassPool classpool;
 
-    private ProxyFactory proxyFactory;
-
     public ConcurrentTestRunner(final Class<?> test) throws Throwable {
         classpool = ClassPool.getDefault();
         final Unfinaliser myTrans = new Unfinaliser();
         classloader = new Loader(Thread.currentThread().getContextClassLoader(), classpool);
         classloader.delegateLoadingOf("org.junit.");
         classloader.delegateLoadingOf("javassist.");
+        classloader.delegateLoadingOf(com.lexicalscope.contest.ConcurrentTestRunner.class.getName());
 
         try {
             classloader.addTranslator(classpool, myTrans);
 
-            proxyFactory = new ProxyFactory();
+            final ProxyFactory proxyFactory = new ProxyFactory();
+            ConcurrentTestRunner.proxyFactory.set(proxyFactory);
             proxyFactory.setSuperclass(classloader.loadClass("org.junit.runners.BlockJUnit4ClassRunner"));
             underlyingRunnerClass = proxyFactory.createClass(new MethodFilter() {
                 public boolean isHandled(final Method m) {
@@ -95,6 +96,7 @@ public class ConcurrentTestRunner extends Runner {
             throw new RuntimeException(e);
         }
     }
+
     @Override public Description getDescription() {
         try {
             return (Description) underlyingRunnerClass.getMethod("getDescription").invoke(underlyingRunner);
@@ -130,31 +132,31 @@ public class ConcurrentTestRunner extends Runner {
 
     public Object initalise(final Object test)
     {
-        final Field[] fields = test.getClass().getFields();
-        for (final Field field : fields) {
-            if (field.getType().getName().equals("com.lexicalscope.contest.ConcurrentTest")) {
-                try {
-                    field.set(
-                            test,
-                            classloader.loadClass("com.lexicalscope.contest.ConcurrentTest").getConstructor(
-                                    javassist.util.proxy.ProxyFactory.class).newInstance(proxyFactory));
-                } catch (final SecurityException e) {
-                    throw new RuntimeException(e);
-                } catch (final IllegalArgumentException e) {
-                    throw new RuntimeException(e);
-                } catch (final NoSuchMethodException e) {
-                    throw new RuntimeException(e);
-                } catch (final IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                } catch (final InvocationTargetException e) {
-                    throw new RuntimeException(e);
-                } catch (final InstantiationException e) {
-                    throw new RuntimeException(e);
-                } catch (final ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
+        //        final Field[] fields = test.getClass().getFields();
+        //        for (final Field field : fields) {
+        //            if (field.getType().getName().equals("com.lexicalscope.contest.ConcurrentTest")) {
+        //                try {
+        //                    field.set(
+        //                            test,
+        //                            classloader.loadClass("com.lexicalscope.contest.ConcurrentTest").getConstructor(
+        //                                    javassist.util.proxy.ProxyFactory.class).newInstance(proxyFactory));
+        //                } catch (final SecurityException e) {
+        //                    throw new RuntimeException(e);
+        //                } catch (final IllegalArgumentException e) {
+        //                    throw new RuntimeException(e);
+        //                } catch (final NoSuchMethodException e) {
+        //                    throw new RuntimeException(e);
+        //                } catch (final IllegalAccessException e) {
+        //                    throw new RuntimeException(e);
+        //                } catch (final InvocationTargetException e) {
+        //                    throw new RuntimeException(e);
+        //                } catch (final InstantiationException e) {
+        //                    throw new RuntimeException(e);
+        //                } catch (final ClassNotFoundException e) {
+        //                    throw new RuntimeException(e);
+        //                }
+        //            }
+        //        }
         return test;
     }
 }

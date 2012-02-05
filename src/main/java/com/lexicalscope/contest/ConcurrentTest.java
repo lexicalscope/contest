@@ -23,12 +23,8 @@ import org.junit.runners.model.Statement;
  */
 
 public class ConcurrentTest implements MethodRule {
-    private static ThreadLocal<ProxyFactory> proxyFactory = new ThreadLocal<ProxyFactory>();
     private TestRun testRun;
 
-    public ConcurrentTest(final ProxyFactory proxyFactory) {
-        ConcurrentTest.proxyFactory.set(proxyFactory);
-    }
     public void checking(final TestRun testRun) {
         this.testRun = testRun;
     }
@@ -37,23 +33,30 @@ public class ConcurrentTest implements MethodRule {
         return new TestingStub<T>(classUnderTest).create();
     }
 
-    void endTest()
-    {
-        proxyFactory.set(null);
-    }
-
     static ProxyFactory proxyFactory()
     {
-        return proxyFactory.get();
+        return ConcurrentTestRunner.proxyFactory.get();
     }
 
     public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {
         return new Statement() {
             @Override public void evaluate() throws Throwable {
                 base.evaluate();
-                System.out.println(method.getMethod());
                 final Schedule schedule = method.getMethod().getAnnotation(Schedule.class);
-                testRun.execute(schedule.value().newInstance());
+
+                final Class<? extends BaseSchedule> scheduleClass = schedule.value();
+
+                final BaseSchedule scheduleInstance;
+                if (scheduleClass.isMemberClass())
+                {
+                    scheduleInstance = scheduleClass.getDeclaredConstructor(target.getClass()).newInstance(target);
+                }
+                else
+                {
+                    scheduleInstance = scheduleClass.newInstance();
+                }
+
+                testRun.execute(scheduleInstance);
             }
         };
     }

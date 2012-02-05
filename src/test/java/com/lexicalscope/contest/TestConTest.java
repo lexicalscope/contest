@@ -27,7 +27,7 @@ import com.google.common.collect.Multiset;
  * limitations under the License. 
  */
 @RunWith(ConcurrentTestRunner.class) public class TestConTest {
-    @Rule public ConcurrentTest context;
+    @Rule public ConcurrentTest context = new ConcurrentTest();
 
     enum MultisetActions
     {
@@ -42,7 +42,7 @@ import com.google.common.collect.Multiset;
         RemovingThread
     }
 
-    static class AddsBeforeRemove extends BaseSchedule
+    class AddsBeforeRemove extends BaseSchedule
     {
         {
             action(FirstAdd).isBefore(Remove);
@@ -50,7 +50,7 @@ import com.google.common.collect.Multiset;
         }
     }
 
-    static class RemoveBeforeAdds extends BaseSchedule
+    class RemoveBeforeAdds extends BaseSchedule
     {
         {
             action(Remove).isBefore(FirstAdd);
@@ -58,10 +58,10 @@ import com.google.common.collect.Multiset;
         }
     }
 
+    final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
+
     @Test @Schedule(AddsBeforeRemove.class) public void removeAfterTwoAddsLeavesSizeOne()
     {
-        final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
-
         context.checking(new TestRun() {
             {
                 inThread(AddingThread).action(FirstAdd).is(multiset).add(42);
@@ -75,8 +75,6 @@ import com.google.common.collect.Multiset;
 
     @Test @Schedule(RemoveBeforeAdds.class) public void concurrentTest()
     {
-        final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
-
         context.checking(new TestRun() {
             {
                 inThread(AddingThread).action(FirstAdd).is(multiset).add(42);

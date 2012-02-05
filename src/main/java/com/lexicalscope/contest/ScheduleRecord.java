@@ -21,17 +21,13 @@ import java.util.List;
 
 public class ScheduleRecord {
     public final List<Enum> actions = new ArrayList<Enum>();
-    private final BaseSchedule baseSchedule;
 
-    public ScheduleRecord(final BaseSchedule baseSchedule) {
-        this.baseSchedule = baseSchedule;
-    }
-
-    public void isBefore(final Enum action) {
+    public ScheduleRecord(final Enum action) {
         actions.add(action);
     }
 
-    void addFirst(final Enum action) {
+    public ScheduleRecord isBefore(final Enum action) {
         actions.add(action);
+        return this;
     }
 }

@@ -42,7 +42,7 @@ import com.google.common.collect.Multiset;
         RemovingThread
     }
 
-    class AddsBeforeRemove extends BaseSchedule
+    class AddAddRemove extends BaseSchedule
     {
         {
             action(FirstAdd).isBefore(Remove);
@@ -50,7 +50,7 @@ import com.google.common.collect.Multiset;
         }
     }
 
-    class RemoveBeforeAdds extends BaseSchedule
+    class RemoveAddAdd extends BaseSchedule
     {
         {
             action(Remove).isBefore(FirstAdd);
@@ -58,14 +58,21 @@ import com.google.common.collect.Multiset;
         }
     }
 
-    class MultiSetSizeIsOne extends BaseTheory
+    class AddRemoveAdd extends BaseSchedule
+    {
+        {
+            action(FirstAdd).isBefore(Remove).isBefore(SecondAdd);
+        }
+    }
+
+    class SizeIsOne extends BaseTheory
     {
         {
             asserting(that(multiset).size(), equalTo(1));
         }
     }
 
-    class MultiSetSizeIsTwo extends BaseTheory
+    class SizeIsTwo extends BaseTheory
     {
         {
             asserting(that(multiset).size(), equalTo(2));
@@ -76,11 +83,15 @@ import com.google.common.collect.Multiset;
 
     @Test @Schedules({
             @Schedule(
-                    when = AddsBeforeRemove.class,
-                    then = MultiSetSizeIsOne.class),
+                    when = AddAddRemove.class,
+                    then = SizeIsOne.class),
             @Schedule(
-                    when = RemoveBeforeAdds.class,
-                    then = MultiSetSizeIsTwo.class) }) public void twoAddsOneRemove()
+                    when = AddRemoveAdd.class,
+                    then = SizeIsOne.class),
+            @Schedule(
+                    when = RemoveAddAdd.class,
+                    then = SizeIsTwo.class)
+    }) public void twoAddsOneRemove()
     {
         context.checking(new TestRun() {
             {
@@ -92,8 +103,8 @@ import com.google.common.collect.Multiset;
     }
 
     @Test @Schedule(
-            when = AddsBeforeRemove.class,
-            then = MultiSetSizeIsOne.class) public void onlyOneSchedule()
+            when = AddAddRemove.class,
+            then = SizeIsOne.class) public void onlyOneSchedule()
     {
         context.checking(new TestRun() {
             {
@@ -103,42 +114,4 @@ import com.google.common.collect.Multiset;
             }
         });
     }
-
-    //
-    //    @Test @Schedule(AddsBeforeRemove.class) public void concurrentTestX()
-    //    {
-    //        final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
-    //
-    //        new TestThread() {
-    //            {
-    //                action(FirstAdd).is(multiset).add(42);
-    //                action(SecondAdd).is(multiset).add(42);
-    //            }
-    //        };
-    //
-    //        new TestThread() {
-    //            {
-    //                action(Remove).is(multiset).remove(42);
-    //            }
-    //        };
-    //
-    //        asserting(that(multiset).size(), equalTo(1));
-    //    }
-
-    //    @Test public void simpleConcurrentTest()
-    //    {
-    //        final Multiset<Object> multiset =
-    //                context.testing(ConcurrentHashMultiset.create()).as(new TypeLiteral<Multiset<Object>>() {});
-    //
-    //        context.checking(new TestRun() {
-    //            {
-    //                // implcit sequence
-    //                inThread(AddingThread).call(multiset).add(42);
-    //                inThread(RemovingThread).call(multiset).remove(42);
-    //                inThread(AddingThread).call(multiset).add(42);
-    //
-    //                asserting(that(multiset).size(), equalTo(1));
-    //            }
-    //        });
-    //    }
 }

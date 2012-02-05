@@ -24,8 +24,7 @@ public class BaseSchedule {
     private final List<ScheduleRecord> scheduleRecords = new ArrayList<ScheduleRecord>();
 
     public ScheduleRecord action(final Enum action) {
-        final ScheduleRecord scheduleRecord = new ScheduleRecord(this);
-        scheduleRecord.addFirst(action);
+        final ScheduleRecord scheduleRecord = new ScheduleRecord(action);
         scheduleRecords.add(scheduleRecord);
         return scheduleRecord;
     }

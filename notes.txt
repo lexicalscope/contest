@@ -1,0 +1,38 @@
+    // TODO: implict thread
+    //    @Test @Schedule(AddsBeforeRemove.class) public void concurrentTestX()
+    //    {
+    //        final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
+    //
+    //        new TestThread() {
+    //            {
+    //                action(FirstAdd).is(multiset).add(42);
+    //                action(SecondAdd).is(multiset).add(42);
+    //            }
+    //        };
+    //
+    //        new TestThread() {
+    //            {
+    //                action(Remove).is(multiset).remove(42);
+    //            }
+    //        };
+    //
+    //        asserting(that(multiset).size(), equalTo(1));
+    //    }
+
+    // TODO: implict schedule
+    //    @Test public void simpleConcurrentTest()
+    //    {
+    //        final Multiset<Object> multiset =
+    //                context.testing(ConcurrentHashMultiset.create()).as(new TypeLiteral<Multiset<Object>>() {});
+    //
+    //        context.checking(new TestRun() {
+    //            {
+    //                // implcit sequence
+    //                inThread(AddingThread).call(multiset).add(42);
+    //                inThread(RemovingThread).call(multiset).remove(42);
+    //                inThread(AddingThread).call(multiset).add(42);
+    //
+    //                asserting(that(multiset).size(), equalTo(1));
+    //            }
+    //        });
+    //    }

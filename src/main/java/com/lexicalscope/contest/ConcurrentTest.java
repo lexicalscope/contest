@@ -44,19 +44,21 @@ public class ConcurrentTest implements MethodRule {
                 base.evaluate();
                 final Schedule schedule = method.getMethod().getAnnotation(Schedule.class);
 
-                final Class<? extends BaseSchedule> scheduleClass = schedule.value();
+                testRun.execute(instanciate(target, schedule.when()));
 
-                final BaseSchedule scheduleInstance;
+                instanciate(target, schedule.then()).execute();
+            }
+
+            private <T> T instanciate(final Object target, final Class<? extends T> scheduleClass)
+                    throws Throwable {
                 if (scheduleClass.isMemberClass())
                 {
-                    scheduleInstance = scheduleClass.getDeclaredConstructor(target.getClass()).newInstance(target);
+                    return scheduleClass.getDeclaredConstructor(target.getClass()).newInstance(target);
                 }
                 else
                 {
-                    scheduleInstance = scheduleClass.newInstance();
+                    return scheduleClass.newInstance();
                 }
-
-                testRun.execute(scheduleInstance);
             }
         };
     }

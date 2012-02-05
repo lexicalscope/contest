@@ -20,5 +20,6 @@ import java.lang.annotation.RetentionPolicy;
  */
 
 @Retention(RetentionPolicy.RUNTIME) public @interface Schedule {
-    Class<? extends BaseSchedule> value();
+    Class<? extends BaseSchedule> when();
+    Class<? extends BaseTheory> then();
 }

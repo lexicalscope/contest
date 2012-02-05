@@ -1,12 +1,9 @@
 package com.lexicalscope.contest;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
-
-import org.hamcrest.Matcher;
 
 import com.google.common.collect.LinkedHashMultimap;
 
@@ -26,21 +23,8 @@ import com.google.common.collect.LinkedHashMultimap;
  * limitations under the License. 
  */
 
-public class TestRun implements CallRecord {
+public class TestRun {
     private final LinkedHashMultimap<Enum, ThreadRecord> threads = LinkedHashMultimap.<Enum, ThreadRecord>create();
-    private final List<Assertion> assertions = new ArrayList<Assertion>();
-    private Object target;
-    private Method method;
-    private Object[] args;
-
-    protected <T> T that(final T objectUnderTest) {
-        ((ContestObjectUnderTest) objectUnderTest).contest_tellMeAboutTheNextInvokation(this);
-        return objectUnderTest;
-    }
-
-    protected <T> void asserting(final T objectUnderTest, final Matcher<T> matcher) {
-        assertions.add(new Assertion(target, method, args, matcher));
-    }
 
     protected ThreadRecord inThread(final Enum thread) {
         final ThreadRecord threadRecord = new ThreadRecord(thread);
@@ -74,15 +58,5 @@ public class TestRun implements CallRecord {
         for (final Thread thread : threadList) {
             thread.join();
         }
-
-        for (final Assertion assertion : assertions) {
-            assertion.execute();
-        }
-    }
-
-    public void callOn(final Object target, final Method method, final Object[] args) {
-        this.target = target;
-        this.method = method;
-        this.args = args;
     }
 }

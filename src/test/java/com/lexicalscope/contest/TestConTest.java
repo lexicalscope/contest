@@ -58,30 +58,44 @@ import com.google.common.collect.Multiset;
         }
     }
 
+    class MultiSetSizeIsOne extends BaseTheory
+    {
+        {
+            asserting(that(multiset).size(), equalTo(1));
+        }
+    }
+
+    class MultiSetSizeIsTwo extends BaseTheory
+    {
+        {
+            asserting(that(multiset).size(), equalTo(2));
+        }
+    }
+
     final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
 
-    @Test @Schedule(AddsBeforeRemove.class) public void removeAfterTwoAddsLeavesSizeOne()
+    @Test @Schedule(
+            when = AddsBeforeRemove.class,
+            then = MultiSetSizeIsOne.class) public void twoAddsOneRemove()
     {
         context.checking(new TestRun() {
             {
                 inThread(AddingThread).action(FirstAdd).is(multiset).add(42);
                 inThread(AddingThread).action(SecondAdd).is(multiset).add(42);
                 inThread(RemovingThread).action(Remove).is(multiset).remove(42);
-
-                asserting(that(multiset).size(), equalTo(1));
             }
         });
     }
 
-    @Test @Schedule(RemoveBeforeAdds.class) public void concurrentTest()
+    @Test @Schedule(
+            when = RemoveBeforeAdds.class,
+            then = MultiSetSizeIsTwo.class) public void concurrentTest()
     {
         context.checking(new TestRun() {
             {
                 inThread(AddingThread).action(FirstAdd).is(multiset).add(42);
                 inThread(AddingThread).action(SecondAdd).is(multiset).add(42);
                 inThread(RemovingThread).action(Remove).is(multiset).remove(42);
-
-                asserting(that(multiset).size(), equalTo(2));
             }
         });
     }

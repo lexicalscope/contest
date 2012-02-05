@@ -1,9 +1,9 @@
 package com.lexicalscope.contest;
 
 import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /*
@@ -22,7 +22,6 @@ import java.lang.annotation.Target;
  * limitations under the License. 
  */
 
-@Retention(RetentionPolicy.RUNTIME) @Target(METHOD) public @interface Schedule {
-    Class<? extends BaseSchedule> when();
-    Class<? extends BaseTheory> then();
+@Retention(RUNTIME) @Target(METHOD) public @interface Schedules {
+    Schedule[] value();
 }

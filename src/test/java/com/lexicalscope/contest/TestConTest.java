@@ -74,9 +74,13 @@ import com.google.common.collect.Multiset;
 
     final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
 
-    @Test @Schedule(
-            when = AddsBeforeRemove.class,
-            then = MultiSetSizeIsOne.class) public void twoAddsOneRemove()
+    @Test @Schedules({
+            @Schedule(
+                    when = AddsBeforeRemove.class,
+                    then = MultiSetSizeIsOne.class),
+            @Schedule(
+                    when = RemoveBeforeAdds.class,
+                    then = MultiSetSizeIsTwo.class) }) public void twoAddsOneRemove()
     {
         context.checking(new TestRun() {
             {
@@ -88,8 +92,8 @@ import com.google.common.collect.Multiset;
     }
 
     @Test @Schedule(
-            when = RemoveBeforeAdds.class,
-            then = MultiSetSizeIsTwo.class) public void concurrentTest()
+            when = AddsBeforeRemove.class,
+            then = MultiSetSizeIsOne.class) public void onlyOneSchedule()
     {
         context.checking(new TestRun() {
             {

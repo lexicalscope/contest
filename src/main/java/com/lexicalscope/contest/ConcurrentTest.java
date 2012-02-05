@@ -1,5 +1,7 @@
 package com.lexicalscope.contest;
 
+import java.lang.reflect.Modifier;
+
 import javassist.util.proxy.ProxyFactory;
 
 import org.junit.rules.MethodRule;
@@ -42,16 +44,16 @@ public class ConcurrentTest implements MethodRule {
         return new Statement() {
             @Override public void evaluate() throws Throwable {
                 base.evaluate();
-                final Schedule schedule = method.getMethod().getAnnotation(Schedule.class);
+                final ConcurrentTestMethod currentTestMethod = ConcurrentTestScheduleRunner.currentTestMethod.get();
 
-                testRun.execute(instanciate(target, schedule.when()));
+                testRun.execute(instanciate(target, currentTestMethod.getSchedule()));
 
-                instanciate(target, schedule.then()).execute();
+                instanciate(target, currentTestMethod.getTheory()).execute();
             }
 
             private <T> T instanciate(final Object target, final Class<? extends T> scheduleClass)
                     throws Throwable {
-                if (scheduleClass.isMemberClass())
+                if (scheduleClass.isMemberClass() && !Modifier.isStatic(scheduleClass.getModifiers()))
                 {
                     return scheduleClass.getDeclaredConstructor(target.getClass()).newInstance(target);
                 }

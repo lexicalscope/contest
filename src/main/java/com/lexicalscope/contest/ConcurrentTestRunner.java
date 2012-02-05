@@ -1,16 +1,12 @@
 package com.lexicalscope.contest;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.Loader;
 import javassist.NotFoundException;
-import javassist.util.proxy.MethodFilter;
-import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
-import javassist.util.proxy.ProxyObject;
 
 import org.junit.runner.Description;
 import org.junit.runner.Runner;
@@ -50,32 +46,18 @@ public class ConcurrentTestRunner extends Runner {
         classloader.delegateLoadingOf("javassist.");
         classloader.delegateLoadingOf(com.lexicalscope.contest.ConcurrentTestRunner.class.getName());
 
+        proxyFactory.set(new ProxyFactory());
+
         try {
             classloader.addTranslator(classpool, myTrans);
 
-            final ProxyFactory proxyFactory = new ProxyFactory();
-            ConcurrentTestRunner.proxyFactory.set(proxyFactory);
-            proxyFactory.setSuperclass(classloader.loadClass("org.junit.runners.BlockJUnit4ClassRunner"));
-            underlyingRunnerClass = proxyFactory.createClass(new MethodFilter() {
-                public boolean isHandled(final Method m) {
-                    return m.getName().equals("createTest");
-                }
-            });
+            underlyingRunnerClass = classloader.loadClass("com.lexicalscope.contest.ConcurrentTestScheduleRunner");
 
             final Class<?> classToTest = classloader.loadClass(test.getName());
             underlyingRunner =
                     underlyingRunnerClass
                             .getConstructor(Class.class)
                             .newInstance(classToTest);
-            ((ProxyObject) underlyingRunner).setHandler(new MethodHandler() {
-                public Object invoke(
-                        final Object self,
-                        final Method thisMethod,
-                        final Method proceed,
-                        final Object[] args) throws Throwable {
-                    return initalise(classToTest.newInstance());
-                }
-            });
         } catch (final NotFoundException e) {
             throw new RuntimeException(e);
         } catch (final CannotCompileException e) {
@@ -128,35 +110,5 @@ public class ConcurrentTestRunner extends Runner {
         } catch (final NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public Object initalise(final Object test)
-    {
-        //        final Field[] fields = test.getClass().getFields();
-        //        for (final Field field : fields) {
-        //            if (field.getType().getName().equals("com.lexicalscope.contest.ConcurrentTest")) {
-        //                try {
-        //                    field.set(
-        //                            test,
-        //                            classloader.loadClass("com.lexicalscope.contest.ConcurrentTest").getConstructor(
-        //                                    javassist.util.proxy.ProxyFactory.class).newInstance(proxyFactory));
-        //                } catch (final SecurityException e) {
-        //                    throw new RuntimeException(e);
-        //                } catch (final IllegalArgumentException e) {
-        //                    throw new RuntimeException(e);
-        //                } catch (final NoSuchMethodException e) {
-        //                    throw new RuntimeException(e);
-        //                } catch (final IllegalAccessException e) {
-        //                    throw new RuntimeException(e);
-        //                } catch (final InvocationTargetException e) {
-        //                    throw new RuntimeException(e);
-        //                } catch (final InstantiationException e) {
-        //                    throw new RuntimeException(e);
-        //                } catch (final ClassNotFoundException e) {
-        //                    throw new RuntimeException(e);
-        //                }
-        //            }
-        //        }
-        return test;
     }
 }

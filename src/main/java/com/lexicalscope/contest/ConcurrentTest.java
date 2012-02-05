@@ -24,7 +24,7 @@ import org.junit.runners.model.Statement;
  * limitations under the License. 
  */
 
-public class ConcurrentTest implements MethodRule {
+@SuppressWarnings("deprecation") public class ConcurrentTest implements MethodRule {
     private TestRun testRun;
 
     public void checking(final TestRun testRun) {

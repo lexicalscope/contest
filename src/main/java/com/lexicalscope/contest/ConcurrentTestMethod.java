@@ -41,7 +41,7 @@ public class ConcurrentTestMethod {
     }
 
     public String getName() {
-        return frameworkMethod.getName() + "[" + when.getSimpleName() + "]";
+        return frameworkMethod.getName() + "[when " + when.getSimpleName() + " then " + then.getSimpleName() + "]";
     }
 
     public Annotation[] getAnnotations() {

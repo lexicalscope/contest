@@ -24,9 +24,10 @@ import com.google.common.collect.LinkedHashMultimap;
  */
 
 public class TestRun {
-    private final LinkedHashMultimap<Enum, ThreadRecord> threads = LinkedHashMultimap.<Enum, ThreadRecord>create();
+    private final LinkedHashMultimap<Enum<?>, ThreadRecord> threads = LinkedHashMultimap
+            .<Enum<?>, ThreadRecord>create();
 
-    protected ThreadRecord inThread(final Enum thread) {
+    protected ThreadRecord inThread(final Enum<?> thread) {
         final ThreadRecord threadRecord = new ThreadRecord(thread);
         threads.put(thread, threadRecord);
         return threadRecord;
@@ -34,7 +35,7 @@ public class TestRun {
 
     public void execute(final BaseSchedule schedule) throws Throwable {
         final List<Thread> threadList = new ArrayList<Thread>();
-        for (final Entry<Enum, Collection<ThreadRecord>> threadEntry : threads.asMap().entrySet()) {
+        for (final Entry<Enum<?>, Collection<ThreadRecord>> threadEntry : threads.asMap().entrySet()) {
             final List<ThreadRecord> recordsForThread = new ArrayList<ThreadRecord>(threadEntry.getValue());
             threadList.add(new Thread() {
                 @Override public void run() {

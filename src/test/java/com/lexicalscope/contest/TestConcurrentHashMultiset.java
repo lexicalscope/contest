@@ -1,7 +1,6 @@
 package com.lexicalscope.contest;
 
-import static com.lexicalscope.contest.TestConTest.MultisetActions.*;
-import static com.lexicalscope.contest.TestConTest.Threads.*;
+import static com.lexicalscope.contest.TestConcurrentHashMultiset._.*;
 import static org.hamcrest.Matchers.equalTo;
 
 import org.junit.Rule;
@@ -26,20 +25,43 @@ import com.google.common.collect.Multiset;
  * See the License for the specific language governing permissions and
  * limitations under the License. 
  */
-@RunWith(ConcurrentTestRunner.class) public class TestConTest {
+@RunWith(ConcurrentTestRunner.class) public class TestConcurrentHashMultiset {
     @Rule public ConcurrentTest context = new ConcurrentTest();
 
-    enum MultisetActions
+    final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
+
+    @Test @Schedules({
+            @Schedule(
+                    when = AddAddRemove.class,
+                    then = SizeIsOne.class),
+            @Schedule(
+                    when = AddRemoveAdd.class,
+                    then = SizeIsOne.class),
+            @Schedule(
+                    when = RemoveAddAdd.class,
+                    then = SizeIsTwo.class)
+    }) public void twoAddsOneRemove()
     {
-        FirstAdd,
-        SecondAdd,
-        Remove
+        context.checking(new TestRun() {
+            {
+                inThread(Producer).action(FirstAdd).is(multiset).add(42);
+                inThread(Producer).action(SecondAdd).is(multiset).add(42);
+                inThread(Consumer).action(Remove).is(multiset).remove(42);
+            }
+        });
     }
 
-    enum Threads
+    @Test @Schedule(
+            when = AddAddRemove.class,
+            then = SizeIsOne.class) public void onlyOneSchedule()
     {
-        AddingThread,
-        RemovingThread
+        context.checking(new TestRun() {
+            {
+                inThread(Producer).action(FirstAdd).is(multiset).add(42);
+                inThread(Producer).action(SecondAdd).is(multiset).add(42);
+                inThread(Consumer).action(Remove).is(multiset).remove(42);
+            }
+        });
     }
 
     class AddAddRemove extends BaseSchedule
@@ -79,39 +101,12 @@ import com.google.common.collect.Multiset;
         }
     }
 
-    final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
-
-    @Test @Schedules({
-            @Schedule(
-                    when = AddAddRemove.class,
-                    then = SizeIsOne.class),
-            @Schedule(
-                    when = AddRemoveAdd.class,
-                    then = SizeIsOne.class),
-            @Schedule(
-                    when = RemoveAddAdd.class,
-                    then = SizeIsTwo.class)
-    }) public void twoAddsOneRemove()
+    enum _
     {
-        context.checking(new TestRun() {
-            {
-                inThread(AddingThread).action(FirstAdd).is(multiset).add(42);
-                inThread(AddingThread).action(SecondAdd).is(multiset).add(42);
-                inThread(RemovingThread).action(Remove).is(multiset).remove(42);
-            }
-        });
-    }
-
-    @Test @Schedule(
-            when = AddAddRemove.class,
-            then = SizeIsOne.class) public void onlyOneSchedule()
-    {
-        context.checking(new TestRun() {
-            {
-                inThread(AddingThread).action(FirstAdd).is(multiset).add(42);
-                inThread(AddingThread).action(SecondAdd).is(multiset).add(42);
-                inThread(RemovingThread).action(Remove).is(multiset).remove(42);
-            }
-        });
+        FirstAdd,
+        SecondAdd,
+        Remove,
+        Producer,
+        Consumer
     }
 }

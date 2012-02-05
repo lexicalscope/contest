@@ -21,7 +21,7 @@ public abstract class TypeLiteral<T> {
                     ? (Class<?>) type
                     : (Class<?>) ((ParameterizedType) type).getRawType();
         }
-        return (Class) rawType;
+        return (Class<T>) rawType;
     }
 
     public Type getType() {

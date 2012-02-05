@@ -18,13 +18,13 @@ package com.lexicalscope.contest;
 
 public class ThreadRecord {
     ActionRecord actionRecord = new ActionRecord();
-    Enum action;
+    Enum<?> action;
 
-    public ThreadRecord(final Enum thread) {
+    public ThreadRecord(final Enum<?> thread) {
         // TODO Auto-generated constructor stub
     }
 
-    public ActionRecord action(final Enum action) {
+    public ActionRecord action(final Enum<?> action) {
         this.action = action;
         return actionRecord;
     }

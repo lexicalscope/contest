@@ -23,7 +23,7 @@ import org.hamcrest.MatcherAssert;
  */
 
 public class Assertion {
-    private final Matcher matcher;
+    @SuppressWarnings("rawtypes") private final Matcher matcher;
     private final Object target;
     private final Method method;
     private final Object[] args;
@@ -35,7 +35,7 @@ public class Assertion {
         this.matcher = matcher;
     }
 
-    public void execute() throws Throwable {
+    @SuppressWarnings("unchecked") public void execute() throws Throwable {
         try {
             MatcherAssert.assertThat(method.invoke(target, args), matcher);
         } catch (final IllegalArgumentException e) {

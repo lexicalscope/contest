@@ -20,13 +20,13 @@ import java.util.List;
  */
 
 public class ScheduleRecord {
-    public final List<Enum> actions = new ArrayList<Enum>();
+    public final List<Enum<?>> actions = new ArrayList<Enum<?>>();
 
-    public ScheduleRecord(final Enum action) {
+    public ScheduleRecord(final Enum<?> action) {
         actions.add(action);
     }
 
-    public ScheduleRecord isBefore(final Enum action) {
+    public ScheduleRecord isBefore(final Enum<?> action) {
         actions.add(action);
         return this;
     }

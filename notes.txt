@@ -36,3 +36,26 @@
     //            }
     //        });
     //    }
+    
+    
+    TODO: create thread for each action, no happens before in test
+        @Test @Schedules({
+            @Schedule(
+                    when = AddAddRemove.class,
+                    then = SizeIsOne.class),
+            @Schedule(
+                    when = AddRemoveAdd.class,
+                    then = SizeIsOne.class),
+            @Schedule(
+                    when = RemoveAddAdd.class,
+                    then = SizeIsTwo.class)
+    }) public void twoAddsOneRemove()
+    {
+        context.checking(new TestRun() {
+            {
+                action(Add1).is(multiset).add(42);
+                action(Add2).is(multiset).add(42);
+                action(Remove).is(multiset).remove(42);
+            }
+        });
+    }

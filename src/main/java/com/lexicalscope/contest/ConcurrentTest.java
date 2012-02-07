@@ -39,7 +39,7 @@ import org.junit.runners.model.Statement;
         proxyFactory.set(new ProxyFactory());
     }
 
-    public void checking(final TestRun testRun) {
+    public void executing(final TestRun testRun) {
         this.testRun = testRun;
     }
 

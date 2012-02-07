@@ -30,7 +30,7 @@ import com.lexicalscope.contest.TestRun;
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 @RunWith(ConcurrentTestRunner.class) public class TestConcurrentHashMultiset {
     @Rule public ConcurrentTest context = new ConcurrentTest();
@@ -38,82 +38,48 @@ import com.lexicalscope.contest.TestRun;
     final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
 
     @Test @Schedules({
-            @Schedule(
-                    when = AddAddRemove.class,
-                    then = SizeIsOne.class),
-            @Schedule(
-                    when = AddRemoveAdd.class,
-                    then = SizeIsOne.class),
-            @Schedule(
-                    when = RemoveAddAdd.class,
-                    then = SizeIsTwo.class)
-    }) public void twoAddsOneRemove()
-    {
-        context.checking(new TestRun() {
-            {
-                inThread(Producer).action(FirstAdd).is(multiset).add(42);
-                inThread(Producer).action(SecondAdd).is(multiset).add(42);
-                inThread(Consumer).action(Remove).is(multiset).remove(42);
-            }
-        });
+        @Schedule(when = AddAddRemove.class, then = SizeIsOne.class),
+        @Schedule(when = AddRemoveAdd.class, then = SizeIsOne.class),
+        @Schedule(when = RemoveAddAdd.class, then = SizeIsTwo.class)
+    }) public void twoAddsOneRemove() {
+        context.executing(new TestRun() {{
+            inThread(Producer).action(FirstAdd).is(multiset).add(42);
+            inThread(Producer).action(SecondAdd).is(multiset).add(42);
+            inThread(Consumer).action(Remove).is(multiset).remove(42);
+        }});
     }
 
-    @Test @Schedule(
-            when = AddAddRemove.class,
-            then = SizeIsOne.class) public void onlyOneSchedule()
+    @Test @Schedule(when = AddAddRemove.class, then = SizeIsOne.class)
+    public void onlyOneSchedule()
     {
-        context.checking(new TestRun() {
-            {
-                inThread(Producer).action(FirstAdd).is(multiset).add(42);
-                inThread(Producer).action(SecondAdd).is(multiset).add(42);
-                inThread(Consumer).action(Remove).is(multiset).remove(42);
-            }
-        });
+        context.executing(new TestRun() {{
+            inThread(Producer).action(FirstAdd).is(multiset).add(42);
+            inThread(Producer).action(SecondAdd).is(multiset).add(42);
+            inThread(Consumer).action(Remove).is(multiset).remove(42);
+        }});
     }
 
-    class AddAddRemove extends BaseSchedule
-    {
-        {
-            action(FirstAdd).isBefore(Remove);
-            action(SecondAdd).isBefore(Remove);
-        }
-    }
+    class AddAddRemove extends BaseSchedule {{
+        action(FirstAdd).isBefore(Remove);
+        action(SecondAdd).isBefore(Remove);
+    }}
 
-    class RemoveAddAdd extends BaseSchedule
-    {
-        {
-            action(Remove).isBefore(FirstAdd);
-            action(Remove).isBefore(SecondAdd);
-        }
-    }
+    class RemoveAddAdd extends BaseSchedule {{
+        action(Remove).isBefore(FirstAdd);
+        action(Remove).isBefore(SecondAdd);
+    }}
 
-    class AddRemoveAdd extends BaseSchedule
-    {
-        {
-            action(FirstAdd).isBefore(Remove).isBefore(SecondAdd);
-        }
-    }
+    class AddRemoveAdd extends BaseSchedule {{
+        action(FirstAdd).isBefore(Remove).isBefore(SecondAdd);
+    }}
 
-    class SizeIsOne extends BaseTheory
-    {
-        {
-            asserting(that(multiset).size(), equalTo(1));
-        }
-    }
+    class SizeIsOne extends BaseTheory {{
+        asserting(that(multiset).size(), equalTo(1));
+    }}
 
-    class SizeIsTwo extends BaseTheory
-    {
-        {
-            asserting(that(multiset).size(), equalTo(2));
-        }
-    }
+    class SizeIsTwo extends BaseTheory {{
+        asserting(that(multiset).size(), equalTo(2));
+    }}
 
-    enum _
-    {
-        FirstAdd,
-        SecondAdd,
-        Remove,
-        Producer,
-        Consumer
-    }
+    enum _ { FirstAdd, SecondAdd, Remove, Producer, Consumer }
 }

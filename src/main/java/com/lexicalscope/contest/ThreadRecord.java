@@ -39,9 +39,24 @@ public class ThreadRecord {
      * 
      * @return record a call to the message producer
      */
-    public ChannelRecord<Object> receiveIn(final Channel<Object> channel) {
+    public ChannelRecord<Object> receive(final Channel<Object> channel) {
         action = new Object();
-        final ChannelRecord<Object> channelRecord = new ChannelRecord<Object>(channel);
+        final ChannelRecord<Object> channelRecord = new BlockingChannelRecord<Object>(channel);
+        this.actionRecord = channelRecord;
+        return channelRecord;
+    }
+
+    /**
+     * Polling receive to the given channel
+     * 
+     * @param channel
+     *            the channel the message will be sent to
+     * 
+     * @return record a call to the message producer
+     */
+    public ChannelRecord<Object> poll(final Channel<Object> channel) {
+        action = new Object();
+        final ChannelRecord<Object> channelRecord = new PollingChannelRecord<Object>(channel);
         this.actionRecord = channelRecord;
         return channelRecord;
     }

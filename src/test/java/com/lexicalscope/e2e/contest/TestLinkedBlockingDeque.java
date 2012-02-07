@@ -31,72 +31,59 @@ import com.lexicalscope.contest.TestRun;
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 @RunWith(ConcurrentTestRunner.class) public class TestLinkedBlockingDeque {
     @Rule public ConcurrentTest context = new ConcurrentTest();
 
     private final LinkedBlockingDeque<Object> queue = context.testing(new LinkedBlockingDeque<Object>());
-    private final Channel<Object> channel = context.channel(Object.class);
+    private final Channel<Object> dequeuedItems = context.channel(Object.class);
 
-    private final Object message1 = new Object();
-    private final Object message2 = new Object();
+    private final Object item1 = new Object();
+    private final Object item2 = new Object();
 
     @Test @Schedules({
-            @Schedule(
-                    when = Add1ThenAdd2.class,
-                    then = Message1BeforeMessage2.class),
-            @Schedule(
-                    when = Add2ThenAdd1.class,
-                    then = Message2BeforeMessage1.class),
-    }) public void twoAddsOneRemove() throws InterruptedException
-    {
-        context.checking(new TestRun() {
-            {
-                action(Add1).is(queue).offer(message1);
-                action(Add2).is(queue).offer(message2);
+        @Schedule(when = Add1ThenAdd2.class, then = Message1BeforeMessage2.class),
+        @Schedule(when = Add2ThenAdd1.class, then = Message2BeforeMessage1.class),
+    }) public void twoOffersTwoTakes() throws InterruptedException {
+        context.executing(new TestRun() {{
+            action(Add1).is(queue).offer(item1);
+            action(Add2).is(queue).offer(item2);
 
-                inThread(Consumer).receiveIn(channel).from(queue).take();
-                inThread(Consumer).receiveIn(channel).from(queue).take();
-            }
-        });
+            inThread(Consumer).receive(dequeuedItems).from(queue).take();
+            inThread(Consumer).receive(dequeuedItems).from(queue).take();
+        }});
     }
 
-    class Add1ThenAdd2 extends BaseSchedule
-    {
-        {
-            action(Add1).isBefore(Add2);
-        }
+    @Test @Schedules({
+        @Schedule(when = Add1ThenAdd2.class, then = Message1BeforeMessage2.class),
+        @Schedule(when = Add2ThenAdd1.class, then = Message2BeforeMessage1.class),
+    }) public void twoOffersTwoPolls() throws InterruptedException{
+        context.executing(new TestRun() {{
+            action(Add1).is(queue).offer(item1);
+            action(Add2).is(queue).offer(item2);
+
+            inThread(Consumer).poll(dequeuedItems).from(queue).poll();
+            inThread(Consumer).poll(dequeuedItems).from(queue).poll();
+        }});
     }
 
-    class Add2ThenAdd1 extends BaseSchedule
-    {
-        {
-            action(Add2).isBefore(Add1);
-        }
-    }
+    class Add1ThenAdd2 extends BaseSchedule {{
+        action(Add1).isBefore(Add2);
+    }}
 
-    class Message1BeforeMessage2 extends BaseTheory
-    {
-        {
-            asserting(channel, contains(message1, message2));
-        }
-    }
+    class Add2ThenAdd1 extends BaseSchedule {{
+        action(Add2).isBefore(Add1);
+    }}
 
-    class Message2BeforeMessage1 extends BaseTheory
-    {
-        {
-            asserting(channel, contains(message2, message1));
-        }
-    }
+    class Message1BeforeMessage2 extends BaseTheory {{
+        asserting(dequeuedItems, contains(item1, item2));
+    }}
 
-    enum _ {
-        Producer,
-        Consumer,
-        Add1,
-        Add2,
-        Remove1,
-        Remove2
-    }
+    class Message2BeforeMessage1 extends BaseTheory {{
+        asserting(dequeuedItems, contains(item2, item1));
+    }}
+
+    enum _ { Producer, Consumer, Add1, Add2, Remove1, Remove2 }
 }

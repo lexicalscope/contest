@@ -19,8 +19,8 @@ import java.lang.reflect.Method;
  * limitations under the License. 
  */
 
-public class ChannelRecord<T> implements Action, CallRecord {
-    private final Channel<T> channel;
+public abstract class ChannelRecord<T> implements Action, CallRecord {
+    protected final Channel<T> channel;
 
     private Object target;
     private Method method;
@@ -30,27 +30,19 @@ public class ChannelRecord<T> implements Action, CallRecord {
         this.channel = channel;
     }
 
-    public void execute() throws Throwable {
-        try {
-            @SuppressWarnings("unchecked") final T value = (T) method.invoke(target, args);
-            channel.push(value);
-        } catch (final IllegalArgumentException e) {
-            throw new RuntimeException(e);
-        } catch (final IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (final InvocationTargetException e) {
-            throw e.getCause();
-        }
-
+    @SuppressWarnings("unchecked") protected final T invokeRecordedMethod()
+            throws IllegalAccessException,
+            InvocationTargetException {
+        return (T) method.invoke(target, args);
     }
 
-    public void callOn(final Object target, final Method method, final Object[] args) {
+    public final void callOn(final Object target, final Method method, final Object[] args) {
         this.target = target;
         this.method = method;
         this.args = args;
     }
 
-    public <S> S from(final S objectUnderTest) {
+    public final <S> S from(final S objectUnderTest) {
         ((ContestObjectUnderTest) objectUnderTest).contest_tellMeAboutTheNextInvokation(this);
         return objectUnderTest;
     }

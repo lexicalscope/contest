@@ -16,7 +16,7 @@ import java.lang.reflect.Method;
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 public class ActionRecord implements CallRecord, Action {
@@ -26,30 +26,6 @@ public class ActionRecord implements CallRecord, Action {
 
     public <T> T is(final T objectUnderTest)
     {
-        final Method[] interfaces = objectUnderTest.getClass().getMethods();
-        for (final Method method : interfaces) {
-            if (method.getParameterTypes().length == 1)
-            {
-                System.out.println(" ** " + method + " and " + method.getParameterTypes()[0].equals(CallRecord.class));
-            }
-        }
-        //
-        //        try {
-        //            objectUnderTest
-        //                    .getClass()
-        //                    .getMethod("contest_tellMeAboutTheNextInvokation", CallRecord.class)
-        //                    .invoke(objectUnderTest, this);
-        //        } catch (final IllegalArgumentException e) {
-        //            throw new RuntimeException(e);
-        //        } catch (final SecurityException e) {
-        //            throw new RuntimeException(e);
-        //        } catch (final IllegalAccessException e) {
-        //            throw new RuntimeException(e);
-        //        } catch (final InvocationTargetException e) {
-        //            throw new RuntimeException(e);
-        //        } catch (final NoSuchMethodException e) {
-        //            throw new RuntimeException(e);
-        //        }
         ((ContestObjectUnderTest) objectUnderTest).contest_tellMeAboutTheNextInvokation(this);
         return objectUnderTest;
     }

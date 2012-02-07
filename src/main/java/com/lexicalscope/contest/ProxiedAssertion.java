@@ -1,10 +1,11 @@
 package com.lexicalscope.contest;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.hamcrest.Matcher;
-import org.hamcrest.MatcherAssert;
 
 /*
  * Copyright 2011 Tim Wood
@@ -19,7 +20,7 @@ import org.hamcrest.MatcherAssert;
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 public class ProxiedAssertion implements Action {
@@ -37,7 +38,7 @@ public class ProxiedAssertion implements Action {
 
     @SuppressWarnings("unchecked") public void execute() throws Throwable {
         try {
-            MatcherAssert.assertThat(method.invoke(target, args), matcher);
+            assertThat(method.invoke(target, args), matcher);
         } catch (final IllegalArgumentException e) {
             throw new RuntimeException(e);
         } catch (final IllegalAccessException e) {

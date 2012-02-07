@@ -1,7 +1,8 @@
 package com.lexicalscope.contest;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import org.hamcrest.Matcher;
-import org.hamcrest.MatcherAssert;
 
 /*
  * Copyright 2011 Tim Wood
@@ -16,7 +17,7 @@ import org.hamcrest.MatcherAssert;
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 public class DirectAssertion implements Action {
@@ -29,6 +30,6 @@ public class DirectAssertion implements Action {
     }
 
     @SuppressWarnings("unchecked") public void execute() throws Throwable {
-        MatcherAssert.assertThat(target, matcher);
+        assertThat(target, matcher);
     }
 }

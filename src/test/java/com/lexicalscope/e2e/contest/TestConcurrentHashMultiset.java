@@ -3,7 +3,6 @@ package com.lexicalscope.e2e.contest;
 import static com.lexicalscope.e2e.contest.TestConcurrentHashMultiset._.*;
 import static org.hamcrest.Matchers.equalTo;
 
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -11,6 +10,7 @@ import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Multiset;
 import com.lexicalscope.contest.BaseSchedule;
 import com.lexicalscope.contest.BaseTheory;
+import com.lexicalscope.contest.ConcurrentContext;
 import com.lexicalscope.contest.ConcurrentTest;
 import com.lexicalscope.contest.ConcurrentTestRunner;
 import com.lexicalscope.contest.Schedule;
@@ -33,7 +33,7 @@ import com.lexicalscope.contest.TestRun;
  * limitations under the License.
  */
 @RunWith(ConcurrentTestRunner.class) public class TestConcurrentHashMultiset {
-    @Rule public ConcurrentTest context = new ConcurrentTest();
+    @ConcurrentContext public ConcurrentTest context = new ConcurrentTest();
 
     private final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
 

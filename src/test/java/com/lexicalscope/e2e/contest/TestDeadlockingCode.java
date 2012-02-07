@@ -4,15 +4,16 @@ import static com.lexicalscope.e2e.contest.TestDeadlockingCode._.*;
 
 import java.util.concurrent.LinkedBlockingDeque;
 
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.lexicalscope.contest.BaseSchedule;
 import com.lexicalscope.contest.BaseTheory;
 import com.lexicalscope.contest.Channel;
+import com.lexicalscope.contest.ConcurrentContext;
 import com.lexicalscope.contest.ConcurrentTest;
 import com.lexicalscope.contest.ConcurrentTestRunner;
+import com.lexicalscope.contest.FailedThreadsException;
 import com.lexicalscope.contest.Schedule;
 import com.lexicalscope.contest.TestRun;
 
@@ -33,14 +34,14 @@ import com.lexicalscope.contest.TestRun;
  */
 
 @RunWith(ConcurrentTestRunner.class) public class TestDeadlockingCode {
-    @Rule public ConcurrentTest context = new ConcurrentTest();
+    @ConcurrentContext public ConcurrentTest context = new ConcurrentTest();
 
     private final LinkedBlockingDeque<Object> queue = context.testing(new LinkedBlockingDeque<Object>());
     private final Channel<Object> dequeuedItems = context.channel(Object.class);
 
     private final Object item = new Object();
 
-    @Test @Schedule(when = AddTheRemoveThenAdd.class, then = AssertNothing.class)
+    @Test(expected = FailedThreadsException.class) @Schedule(when = AddTheRemoveThenAdd.class, then = AssertNothing.class)
     public void twoOffersTwoTakes() throws InterruptedException {
         context.executing(new TestRun() {{
             action(Add).is(queue).offer(item);

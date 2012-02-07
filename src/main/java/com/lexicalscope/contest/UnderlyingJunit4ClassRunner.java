@@ -1,5 +1,8 @@
 package com.lexicalscope.contest;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +12,7 @@ import org.junit.runner.Description;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
+import org.junit.runners.model.Statement;
 
 /*
  * Copyright 2011 Tim Wood
@@ -23,7 +27,7 @@ import org.junit.runners.model.InitializationError;
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 public class UnderlyingJunit4ClassRunner extends BlockJUnit4ClassRunner {
@@ -57,6 +61,50 @@ public class UnderlyingJunit4ClassRunner extends BlockJUnit4ClassRunner {
         final FrameworkMethod frameworkMethod = concurrentTestMethod.getFrameworkMethod();
         result.add(frameworkMethod);
         return result;
+    }
+
+    @Override protected Statement methodInvoker(final FrameworkMethod method, final Object test) {
+        final Statement methodInvoker = super.methodInvoker(method, test);
+        return new Statement() {
+            @Override public void evaluate() throws Throwable {
+                methodInvoker.evaluate();
+
+                final ConcurrentTestMethod currentTestMethod = ConcurrentTestScheduleRunner.currentTestMethod.get();
+
+                ConcurrentTest context = null;
+                final Field[] fields = test.getClass().getDeclaredFields();
+                for (final Field field : fields) {
+                    if(field.getAnnotation(ConcurrentContext.class) != null)
+                    {
+                        context = (ConcurrentTest) field.get(test);
+                    }
+                }
+
+                if(context == null)
+                {
+                    throw new RuntimeException("at least one field must be annotated with " + ConcurrentContext.class.getSimpleName());
+                }
+
+                context.testRun.execute(instanciate(test, currentTestMethod.getSchedule()));
+
+                instanciate(test, currentTestMethod.getTheory()).execute();
+            }
+
+            private <T> T instanciate(final Object target, final Class<? extends T> scheduleClass)
+                    throws Throwable {
+                if (scheduleClass.isMemberClass() && !Modifier.isStatic(scheduleClass.getModifiers()))
+                {
+                    final Constructor<? extends T> constructor =
+                            scheduleClass.getDeclaredConstructor(target.getClass());
+                    constructor.setAccessible(true);
+                    return constructor.newInstance(target);
+                }
+                else
+                {
+                    return scheduleClass.newInstance();
+                }
+            }
+        };
     }
 
     @Override protected Description describeChild(final FrameworkMethod method) {

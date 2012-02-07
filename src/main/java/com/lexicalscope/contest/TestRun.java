@@ -3,7 +3,6 @@ package com.lexicalscope.contest;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import com.google.common.collect.LinkedHashMultimap;
@@ -80,16 +79,7 @@ public class TestRun {
 
         if(threadState.anyFailedThreads())
         {
-            final Map<Thread, Throwable> threadFailures = threadState.threadFailures();
-            if(threadFailures.size() == 1)
-            {
-                final Entry<Thread, Throwable> threadFailure = threadFailures.entrySet().iterator().next();
-                throw new FailedThreadsException(threadFailure.getKey(), threadFailure.getValue());
-            }
-            else
-            {
-                throw new FailedThreadsException(threadFailures);
-            }
+            throw new FailedThreadsException(threadState.threadFailures());
         }
     }
 }

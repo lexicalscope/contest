@@ -24,7 +24,7 @@ import org.junit.runner.notification.RunNotifier;
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 public class ConcurrentTestRunner extends Runner {
@@ -41,7 +41,6 @@ public class ConcurrentTestRunner extends Runner {
         classloader = new Loader(Thread.currentThread().getContextClassLoader(), classpool);
         classloader.delegateLoadingOf("org.junit.");
         classloader.delegateLoadingOf("javassist.");
-        //        classloader.delegateLoadingOf(com.lexicalscope.contest.ConcurrentTestRunner.class.getName());
 
         try {
             classloader.addTranslator(classpool, myTrans);
@@ -51,8 +50,8 @@ public class ConcurrentTestRunner extends Runner {
             final Class<?> classToTest = classloader.loadClass(test.getName());
             underlyingRunner =
                     underlyingRunnerClass
-                            .getConstructor(Class.class)
-                            .newInstance(classToTest);
+                    .getConstructor(Class.class)
+                    .newInstance(classToTest);
         } catch (final NotFoundException e) {
             throw new RuntimeException(e);
         } catch (final CannotCompileException e) {

@@ -1,5 +1,7 @@
 package com.lexicalscope.contest;
 
+import static java.lang.Thread.currentThread;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +18,7 @@ import java.util.List;
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 public class BaseSchedule {
@@ -29,15 +31,17 @@ public class BaseSchedule {
         return scheduleRecord;
     }
 
-    public synchronized void enforceSchedule_beforeAction(final Object action) {
+    public synchronized void enforceSchedule_beforeAction(final TestThreadState threadState, final Object action) {
         while (!allowed(action))
         {
+            threadState.threadBlocked(currentThread(), action);
             try {
                 wait();
             } catch (final InterruptedException e) {
                 // nothing yet
             }
         }
+        threadState.threadProgressing(currentThread());
     }
 
     private boolean allowed(final Object action) {
@@ -57,7 +61,7 @@ public class BaseSchedule {
         return true;
     }
 
-    public synchronized void enforceSchedule_afterAction(final Object action) {
+    public synchronized void enforceSchedule_afterAction(final TestThreadState threadState, final Object action) {
         trace.add(action);
         notifyAll();
     }

@@ -3,6 +3,7 @@ package com.lexicalscope.contest;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import com.google.common.collect.LinkedHashMultimap;
@@ -20,7 +21,7 @@ import com.google.common.collect.LinkedHashMultimap;
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 public class TestRun {
@@ -36,20 +37,34 @@ public class TestRun {
         return inThread(new Object()).action(action);
     }
 
+    protected ChannelRecord<Object> receive(final Channel<Object> channel) {
+        return inThread(new Object()).action(new Object()).receive(channel);
+    }
+
     void execute(final BaseSchedule schedule) throws Throwable {
+        final TestThreadState threadState = new TestThreadState();
+
+        threadState.threads(threads.asMap().keySet().size());
+
         final List<Thread> threadList = new ArrayList<Thread>();
         for (final Entry<Object, Collection<ThreadRecord>> threadEntry : threads.asMap().entrySet()) {
             final List<ThreadRecord> recordsForThread = new ArrayList<ThreadRecord>(threadEntry.getValue());
             threadList.add(new Thread() {
                 @Override public void run() {
-                    for (final ThreadRecord threadRecord : recordsForThread) {
-                        try {
-                            schedule.enforceSchedule_beforeAction(threadRecord.action);
+                    try {
+                        for (final ThreadRecord threadRecord : recordsForThread) {
+                            schedule.enforceSchedule_beforeAction(threadState, threadRecord.action);
                             threadRecord.actionRecord.execute();
-                            schedule.enforceSchedule_afterAction(threadRecord.action);
-                        } catch (final Throwable e) {
-                            throw new RuntimeException(e);
+                            schedule.enforceSchedule_afterAction(threadState, threadRecord.action);
+                            if(threadState.anyFailedThreads())
+                            {
+                                break;
+                            }
                         }
+                    } catch (final Throwable e) {
+                        threadState.threadFailed(e);
+                    } finally {
+                        threadState.threadFinished();
                     }
                 }
             });
@@ -61,6 +76,20 @@ public class TestRun {
 
         for (final Thread thread : threadList) {
             thread.join();
+        }
+
+        if(threadState.anyFailedThreads())
+        {
+            final Map<Thread, Throwable> threadFailures = threadState.threadFailures();
+            if(threadFailures.size() == 1)
+            {
+                final Entry<Thread, Throwable> threadFailure = threadFailures.entrySet().iterator().next();
+                throw new FailedThreadsException(threadFailure.getKey(), threadFailure.getValue());
+            }
+            else
+            {
+                throw new FailedThreadsException(threadFailures);
+            }
         }
     }
 }

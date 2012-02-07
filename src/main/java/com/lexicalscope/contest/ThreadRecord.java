@@ -13,7 +13,7 @@ package com.lexicalscope.contest;
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 public class ThreadRecord {
@@ -25,39 +25,23 @@ public class ThreadRecord {
     }
 
     public ActionRecord action(final Object action) {
+        if(action == null)
+        {
+            throw new NullPointerException("null actions are not allowed");
+        }
+        if(this.action != null)
+        {
+            throw new RuntimeException("Action is already set to " + action + " cannot change it to " + action);
+        }
         this.action = action;
-        final ActionRecord actionRecord = new ActionRecord();
-        this.actionRecord = actionRecord;
-        return actionRecord;
+        return new ActionRecord(this);
     }
 
-    /**
-     * Blocking receive to the given channel
-     * 
-     * @param channel
-     *            the channel the message will be sent to
-     * 
-     * @return record a call to the message producer
-     */
     public ChannelRecord<Object> receive(final Channel<Object> channel) {
-        action = new Object();
-        final ChannelRecord<Object> channelRecord = new BlockingChannelRecord<Object>(channel);
-        this.actionRecord = channelRecord;
-        return channelRecord;
+        return action(new Object()).receive(channel);
     }
 
-    /**
-     * Polling receive to the given channel
-     * 
-     * @param channel
-     *            the channel the message will be sent to
-     * 
-     * @return record a call to the message producer
-     */
     public ChannelRecord<Object> poll(final Channel<Object> channel) {
-        action = new Object();
-        final ChannelRecord<Object> channelRecord = new PollingChannelRecord<Object>(channel);
-        this.actionRecord = channelRecord;
-        return channelRecord;
+        return action(new Object()).poll(channel);
     }
 }

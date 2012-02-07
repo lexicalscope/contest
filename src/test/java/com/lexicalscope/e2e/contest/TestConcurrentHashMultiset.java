@@ -35,7 +35,7 @@ import com.lexicalscope.contest.TestRun;
 @RunWith(ConcurrentTestRunner.class) public class TestConcurrentHashMultiset {
     @Rule public ConcurrentTest context = new ConcurrentTest();
 
-    final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
+    private final Multiset<Object> multiset = context.testing(ConcurrentHashMultiset.create());
 
     @Test @Schedules({
         @Schedule(when = AddAddRemove.class, then = SizeIsOne.class),

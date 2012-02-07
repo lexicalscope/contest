@@ -1,6 +1,6 @@
 package com.lexicalscope.contest;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 /*
  * Copyright 2011 Tim Wood
@@ -18,21 +18,14 @@ import java.lang.reflect.InvocationTargetException;
  * limitations under the License.
  */
 
-public class BlockingChannelRecord<T> extends ChannelRecord<T> {
-    public BlockingChannelRecord(final Channel<T> channel) {
-        super(channel);
+public class FailedThreadsException extends Exception {
+    private static final long serialVersionUID = 5866838875138216913L;
+
+    public FailedThreadsException(final Thread thread, final Throwable throwable) {
+        super(thread + " failed " + throwable.getMessage(), throwable);
     }
 
-    public void execute() throws Throwable {
-        try {
-            final T value = invokeRecordedMethod();
-            channel.push(value);
-        } catch (final IllegalArgumentException e) {
-            throw new RuntimeException(e);
-        } catch (final IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (final InvocationTargetException e) {
-            throw e.getCause();
-        }
+    public FailedThreadsException(final Map<Thread, Throwable> threadFailures) {
+        super("Failed threads " + threadFailures);
     }
 }

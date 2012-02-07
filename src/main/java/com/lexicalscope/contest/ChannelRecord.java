@@ -26,7 +26,9 @@ public abstract class ChannelRecord<T> implements Action, CallRecord {
     private Method method;
     private Object[] args;
 
-    public ChannelRecord(final Channel<T> channel) {
+
+    public ChannelRecord(
+            final Channel<T> channel) {
         this.channel = channel;
     }
 

@@ -20,15 +20,52 @@ import java.lang.reflect.Method;
  */
 
 public class ActionRecord implements CallRecord, Action {
+    private final ThreadRecord threadRecord;
+
     private Object target;
     private Method method;
     private Object[] args;
 
+    public ActionRecord(final ThreadRecord threadRecord)
+    {
+        this.threadRecord = threadRecord;
+    }
+
     public <T> T is(final T objectUnderTest)
     {
         ((ContestObjectUnderTest) objectUnderTest).contest_tellMeAboutTheNextInvokation(this);
+        threadRecord.actionRecord = this;
         return objectUnderTest;
     }
+
+    /**
+     * Blocking receive to the given channel
+     * 
+     * @param channel
+     *            the channel the message will be sent to
+     * 
+     * @return record a call to the message producer
+     */
+    public ChannelRecord<Object> receive(final Channel<Object> channel) {
+        final ChannelRecord<Object> channelRecord = new BlockingChannelRecord<Object>(channel);
+        threadRecord.actionRecord = channelRecord;
+        return channelRecord;
+    }
+
+    /**
+     * Polling receive to the given channel
+     * 
+     * @param channel
+     *            the channel the message will be sent to
+     * 
+     * @return record a call to the message producer
+     */
+    public ChannelRecord<Object> poll(final Channel<Object> channel) {
+        final ChannelRecord<Object> channelRecord = new PollingChannelRecord<Object>(channel);
+        threadRecord.actionRecord = channelRecord;
+        return channelRecord;
+    }
+
     /*
      * (non-Javadoc)
      * 

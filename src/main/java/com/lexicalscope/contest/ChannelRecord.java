@@ -1,10 +1,7 @@
 package com.lexicalscope.contest;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hamcrest.Matcher;
 
 /*
  * Copyright 2011 Tim Wood
@@ -22,14 +19,30 @@ import org.hamcrest.Matcher;
  * limitations under the License. 
  */
 
-public class BaseTheory implements CallRecord {
-    private final List<Action> assertions = new ArrayList<Action>();
+public class ChannelRecord<T> implements Action, CallRecord {
+    private final Channel<T> channel;
 
     private Object target;
     private Method method;
     private Object[] args;
 
-    private Mode mode = Mode.Direct;
+    public ChannelRecord(final Channel<T> channel) {
+        this.channel = channel;
+    }
+
+    public void execute() throws Throwable {
+        try {
+            @SuppressWarnings("unchecked") final T value = (T) method.invoke(target, args);
+            channel.push(value);
+        } catch (final IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        } catch (final IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (final InvocationTargetException e) {
+            throw e.getCause();
+        }
+
+    }
 
     public void callOn(final Object target, final Method method, final Object[] args) {
         this.target = target;
@@ -37,32 +50,8 @@ public class BaseTheory implements CallRecord {
         this.args = args;
     }
 
-    protected <T> T that(final T objectUnderTest) {
-        mode = Mode.Record;
+    public <S> S from(final S objectUnderTest) {
         ((ContestObjectUnderTest) objectUnderTest).contest_tellMeAboutTheNextInvokation(this);
         return objectUnderTest;
-    }
-
-    protected <T> void asserting(final T assertionTarget, final Matcher<T> matcher) {
-        // TODO: detect if its proxied or not
-        if (mode == Mode.Record)
-        {
-            assertions.add(new ProxiedAssertion(target, method, args, matcher));
-        }
-        else
-        {
-            assertions.add(new DirectAssertion(assertionTarget, matcher));
-        }
-    }
-
-    public void execute() throws Throwable
-    {
-        for (final Action assertion : assertions) {
-            assertion.execute();
-        }
-    }
-
-    private enum Mode {
-        Record, Direct
     }
 }

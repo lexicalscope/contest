@@ -1,8 +1,5 @@
 package com.lexicalscope.contest;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /*
  * Copyright 2011 Tim Wood
  *
@@ -19,15 +16,6 @@ import java.util.List;
  * limitations under the License. 
  */
 
-public class ScheduleRecord {
-    public final List<Object> actions = new ArrayList<Object>();
-
-    public ScheduleRecord(final Object action) {
-        actions.add(action);
-    }
-
-    public ScheduleRecord isBefore(final Object action) {
-        actions.add(action);
-        return this;
-    }
+public interface Channel<T> extends Iterable<T> {
+    void push(T value);
 }

@@ -1,6 +1,9 @@
 package com.lexicalscope.contest;
 
+import static java.util.Collections.synchronizedList;
+
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /*
@@ -19,15 +22,14 @@ import java.util.List;
  * limitations under the License. 
  */
 
-public class ScheduleRecord {
-    public final List<Object> actions = new ArrayList<Object>();
+public class ChannelImpl<T> implements Channel<T> {
+    private final List<T> messages = synchronizedList(new ArrayList<T>());
 
-    public ScheduleRecord(final Object action) {
-        actions.add(action);
+    public Iterator<T> iterator() {
+        return new ArrayList<T>(messages).iterator();
     }
 
-    public ScheduleRecord isBefore(final Object action) {
-        actions.add(action);
-        return this;
+    public void push(final T value) {
+        messages.add(value);
     }
 }

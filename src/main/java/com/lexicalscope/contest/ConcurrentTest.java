@@ -1,8 +1,10 @@
 package com.lexicalscope.contest;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 
 import javassist.util.proxy.ProxyFactory;
+import javassist.util.proxy.ProxyFactory.ClassLoaderProvider;
 
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
@@ -25,7 +27,17 @@ import org.junit.runners.model.Statement;
  */
 
 @SuppressWarnings("deprecation") public class ConcurrentTest implements MethodRule {
+    public static final ThreadLocal<ProxyFactory> proxyFactory = new ThreadLocal<ProxyFactory>();
     private TestRun testRun;
+
+    public ConcurrentTest() {
+        ProxyFactory.classLoaderProvider = new ClassLoaderProvider() {
+            public ClassLoader get(final ProxyFactory pf) {
+                return ConcurrentTest.class.getClassLoader();
+            }
+        };
+        proxyFactory.set(new ProxyFactory());
+    }
 
     public void checking(final TestRun testRun) {
         this.testRun = testRun;
@@ -37,7 +49,7 @@ import org.junit.runners.model.Statement;
 
     static ProxyFactory proxyFactory()
     {
-        return ConcurrentTestRunner.proxyFactory.get();
+        return proxyFactory.get();
     }
 
     public Statement apply(final Statement base, final FrameworkMethod method, final Object target) {
@@ -55,7 +67,10 @@ import org.junit.runners.model.Statement;
                     throws Throwable {
                 if (scheduleClass.isMemberClass() && !Modifier.isStatic(scheduleClass.getModifiers()))
                 {
-                    return scheduleClass.getDeclaredConstructor(target.getClass()).newInstance(target);
+                    final Constructor<? extends T> constructor =
+                            scheduleClass.getDeclaredConstructor(target.getClass());
+                    constructor.setAccessible(true);
+                    return constructor.newInstance(target);
                 }
                 else
                 {
@@ -63,5 +78,9 @@ import org.junit.runners.model.Statement;
                 }
             }
         };
+    }
+
+    public <T> Channel<T> channel(final Class<T> klass) {
+        return new ChannelImpl<T>();
     }
 }

@@ -6,7 +6,6 @@ import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.Loader;
 import javassist.NotFoundException;
-import javassist.util.proxy.ProxyFactory;
 
 import org.junit.runner.Description;
 import org.junit.runner.Runner;
@@ -29,8 +28,6 @@ import org.junit.runner.notification.RunNotifier;
  */
 
 public class ConcurrentTestRunner extends Runner {
-    public static final ThreadLocal<ProxyFactory> proxyFactory = new ThreadLocal<ProxyFactory>();
-
     private Object underlyingRunner;
     private Class<?> underlyingRunnerClass;
 
@@ -44,9 +41,7 @@ public class ConcurrentTestRunner extends Runner {
         classloader = new Loader(Thread.currentThread().getContextClassLoader(), classpool);
         classloader.delegateLoadingOf("org.junit.");
         classloader.delegateLoadingOf("javassist.");
-        classloader.delegateLoadingOf(com.lexicalscope.contest.ConcurrentTestRunner.class.getName());
-
-        proxyFactory.set(new ProxyFactory());
+        //        classloader.delegateLoadingOf(com.lexicalscope.contest.ConcurrentTestRunner.class.getName());
 
         try {
             classloader.addTranslator(classpool, myTrans);
@@ -97,7 +92,6 @@ public class ConcurrentTestRunner extends Runner {
 
     @Override public void run(final RunNotifier notifier) {
         try {
-
             underlyingRunnerClass.getMethod("run", notifier.getClass()).invoke(underlyingRunner, notifier);
         } catch (final IllegalArgumentException e) {
             throw new RuntimeException(e);

@@ -20,7 +20,7 @@ import java.util.List;
  */
 
 public class BaseSchedule {
-    private final List<Enum<?>> trace = new ArrayList<Enum<?>>();
+    private final List<Object> trace = new ArrayList<Object>();
     private final List<ScheduleRecord> scheduleRecords = new ArrayList<ScheduleRecord>();
 
     public ScheduleRecord action(final Enum<?> action) {
@@ -29,7 +29,7 @@ public class BaseSchedule {
         return scheduleRecord;
     }
 
-    public synchronized void enforceSchedule_beforeAction(final Enum<?> action) {
+    public synchronized void enforceSchedule_beforeAction(final Object action) {
         while (!allowed(action))
         {
             try {
@@ -40,9 +40,9 @@ public class BaseSchedule {
         }
     }
 
-    private boolean allowed(final Enum<?> action) {
+    private boolean allowed(final Object action) {
         for (final ScheduleRecord scheduleRecord : scheduleRecords) {
-            final List<Enum<?>> actions = scheduleRecord.actions;
+            final List<Object> actions = scheduleRecord.actions;
             if (actions.contains(action))
             {
                 final int index = actions.indexOf(action);
@@ -57,7 +57,7 @@ public class BaseSchedule {
         return true;
     }
 
-    public synchronized void enforceSchedule_afterAction(final Enum<?> action) {
+    public synchronized void enforceSchedule_afterAction(final Object action) {
         trace.add(action);
         notifyAll();
     }

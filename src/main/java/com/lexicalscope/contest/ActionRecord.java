@@ -19,17 +19,45 @@ import java.lang.reflect.Method;
  * limitations under the License. 
  */
 
-public class ActionRecord implements CallRecord {
+public class ActionRecord implements CallRecord, Action {
     private Object target;
     private Method method;
     private Object[] args;
 
-    <T> T is(final T objectUnderTest)
+    public <T> T is(final T objectUnderTest)
     {
+        final Method[] interfaces = objectUnderTest.getClass().getMethods();
+        for (final Method method : interfaces) {
+            if (method.getParameterTypes().length == 1)
+            {
+                System.out.println(" ** " + method + " and " + method.getParameterTypes()[0].equals(CallRecord.class));
+            }
+        }
+        //
+        //        try {
+        //            objectUnderTest
+        //                    .getClass()
+        //                    .getMethod("contest_tellMeAboutTheNextInvokation", CallRecord.class)
+        //                    .invoke(objectUnderTest, this);
+        //        } catch (final IllegalArgumentException e) {
+        //            throw new RuntimeException(e);
+        //        } catch (final SecurityException e) {
+        //            throw new RuntimeException(e);
+        //        } catch (final IllegalAccessException e) {
+        //            throw new RuntimeException(e);
+        //        } catch (final InvocationTargetException e) {
+        //            throw new RuntimeException(e);
+        //        } catch (final NoSuchMethodException e) {
+        //            throw new RuntimeException(e);
+        //        }
         ((ContestObjectUnderTest) objectUnderTest).contest_tellMeAboutTheNextInvokation(this);
         return objectUnderTest;
     }
-
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.lexicalscope.contest.Action#execute()
+     */
     public void execute() throws Throwable {
         try {
             method.invoke(target, args);
@@ -46,6 +74,5 @@ public class ActionRecord implements CallRecord {
         this.target = target;
         this.method = method;
         this.args = args;
-
     }
 }

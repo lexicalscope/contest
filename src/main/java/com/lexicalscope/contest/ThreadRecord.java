@@ -17,15 +17,32 @@ package com.lexicalscope.contest;
  */
 
 public class ThreadRecord {
-    ActionRecord actionRecord = new ActionRecord();
-    Enum<?> action;
+    Action actionRecord;
+    Object action;
 
-    public ThreadRecord(final Enum<?> thread) {
+    public ThreadRecord(final Object thread) {
         // TODO Auto-generated constructor stub
     }
 
-    public ActionRecord action(final Enum<?> action) {
+    public ActionRecord action(final Object action) {
         this.action = action;
+        final ActionRecord actionRecord = new ActionRecord();
+        this.actionRecord = actionRecord;
         return actionRecord;
+    }
+
+    /**
+     * Blocking receive to the given channel
+     * 
+     * @param channel
+     *            the channel the message will be sent to
+     * 
+     * @return record a call to the message producer
+     */
+    public ChannelRecord<Object> receiveIn(final Channel<Object> channel) {
+        action = new Object();
+        final ChannelRecord<Object> channelRecord = new ChannelRecord<Object>(channel);
+        this.actionRecord = channelRecord;
+        return channelRecord;
     }
 }

@@ -1,8 +1,5 @@
 package com.lexicalscope.contest;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 
@@ -22,28 +19,16 @@ import org.hamcrest.MatcherAssert;
  * limitations under the License. 
  */
 
-public class Assertion {
+public class DirectAssertion implements Action {
     @SuppressWarnings("rawtypes") private final Matcher matcher;
     private final Object target;
-    private final Method method;
-    private final Object[] args;
 
-    public Assertion(final Object target, final Method method, final Object[] args, final Matcher<?> matcher) {
+    public DirectAssertion(final Object target, final Matcher<?> matcher) {
         this.target = target;
-        this.method = method;
-        this.args = args;
         this.matcher = matcher;
     }
 
     @SuppressWarnings("unchecked") public void execute() throws Throwable {
-        try {
-            MatcherAssert.assertThat(method.invoke(target, args), matcher);
-        } catch (final IllegalArgumentException e) {
-            throw new RuntimeException(e);
-        } catch (final IllegalAccessException e) {
-            throw new RuntimeException(e);
-        } catch (final InvocationTargetException e) {
-            throw e.getCause();
-        }
+        MatcherAssert.assertThat(target, matcher);
     }
 }

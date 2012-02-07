@@ -1,6 +1,6 @@
-package com.lexicalscope.contest;
+package com.lexicalscope.e2e.contest;
 
-import static com.lexicalscope.contest.TestConcurrentHashMultiset._.*;
+import static com.lexicalscope.e2e.contest.TestConcurrentHashMultiset._.*;
 import static org.hamcrest.Matchers.equalTo;
 
 import org.junit.Rule;
@@ -9,6 +9,13 @@ import org.junit.runner.RunWith;
 
 import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Multiset;
+import com.lexicalscope.contest.BaseSchedule;
+import com.lexicalscope.contest.BaseTheory;
+import com.lexicalscope.contest.ConcurrentTest;
+import com.lexicalscope.contest.ConcurrentTestRunner;
+import com.lexicalscope.contest.Schedule;
+import com.lexicalscope.contest.Schedules;
+import com.lexicalscope.contest.TestRun;
 
 /*
  * Copyright 2011 Tim Wood

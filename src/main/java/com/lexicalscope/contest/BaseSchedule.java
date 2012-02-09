@@ -3,7 +3,9 @@ package com.lexicalscope.contest;
 import static java.lang.Thread.currentThread;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /*
  * Copyright 2011 Tim Wood
@@ -22,17 +24,26 @@ import java.util.List;
  */
 
 public class BaseSchedule {
-    private final List<Object> trace = new ArrayList<Object>();
     private final List<ScheduleRecord> scheduleRecords = new ArrayList<ScheduleRecord>();
+    private final Map<Object, Object> actionMonitors = new HashMap<Object, Object>();
+    private final List<Object> trace = new ArrayList<Object>();
 
-    public ScheduleRecord action(final Enum<?> action) {
-        final ScheduleRecord scheduleRecord = new ScheduleRecord(action);
+    public synchronized ScheduleRecord action(final Enum<?> action) {
+        final ScheduleRecord scheduleRecord = new ScheduleRecord(this, action);
         scheduleRecords.add(scheduleRecord);
         return scheduleRecord;
     }
 
+    synchronized void registerAction(final Object action)
+    {
+        if(!actionMonitors.containsKey(action))
+        {
+            actionMonitors.put(action, new Object());
+        }
+    }
+
     public synchronized void enforceSchedule_beforeAction(final TestThreadState threadState, final Object action) {
-        while (!allowed(action))
+        while (!allowed(action) && !threadState.anyFailedThreads())
         {
             threadState.threadBlocked(currentThread(), action);
             try {
@@ -40,6 +51,11 @@ public class BaseSchedule {
             } catch (final InterruptedException e) {
                 // nothing yet
             }
+        }
+
+        if(threadState.anyFailedThreads())
+        {
+            throw new RuntimeException("another thread failed, terminating early");
         }
         threadState.threadProgressing(currentThread());
     }
@@ -63,6 +79,7 @@ public class BaseSchedule {
 
     public synchronized void enforceSchedule_afterAction(final TestThreadState threadState, final Object action) {
         trace.add(action);
+        threadState.unblock(action);
         notifyAll();
     }
 }

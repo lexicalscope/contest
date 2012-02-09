@@ -46,7 +46,7 @@ public class ActionRecord implements CallRecord, Action {
      * 
      * @return record a call to the message producer
      */
-    public ChannelRecord<Object> receive(final Channel<Object> channel) {
+    public ChannelRecord<Object> take(final Channel<Object> channel) {
         final ChannelRecord<Object> channelRecord = new BlockingChannelRecord<Object>(channel);
         threadRecord.actionRecord = channelRecord;
         return channelRecord;

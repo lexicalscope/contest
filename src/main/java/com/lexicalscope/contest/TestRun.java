@@ -1,9 +1,14 @@
 package com.lexicalscope.contest;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.collect.LinkedHashMultimap;
 
@@ -37,18 +42,17 @@ public class TestRun {
     }
 
     protected ChannelRecord<Object> receive(final Channel<Object> channel) {
-        return inThread(new Object()).action(new Object()).receive(channel);
+        return inThread(new Object()).action(new Object()).take(channel);
     }
 
     void execute(final BaseSchedule schedule) throws Throwable {
-        final TestThreadState threadState = new TestThreadState();
-
-        threadState.threads(threads.asMap().keySet().size());
+        final CountDownLatch terminationBarrier = new CountDownLatch(threads.asMap().entrySet().size());
+        final TestThreadState threadState = new TestThreadState(terminationBarrier);
 
         final List<Thread> threadList = new ArrayList<Thread>();
         for (final Entry<Object, Collection<ThreadRecord>> threadEntry : threads.asMap().entrySet()) {
             final List<ThreadRecord> recordsForThread = new ArrayList<ThreadRecord>(threadEntry.getValue());
-            threadList.add(new Thread() {
+            threadList.add(new Thread(threadEntry.getKey().toString()) {
                 @Override public void run() {
                     try {
                         for (final ThreadRecord threadRecord : recordsForThread) {
@@ -62,8 +66,10 @@ public class TestRun {
                         }
                     } catch (final Throwable e) {
                         threadState.threadFailed(e);
-                    } finally {
-                        threadState.threadFinished();
+                    }
+                    finally
+                    {
+                        terminationBarrier.countDown();
                     }
                 }
             });
@@ -73,13 +79,24 @@ public class TestRun {
             thread.start();
         }
 
-        for (final Thread thread : threadList) {
-            thread.join();
+        while(terminationBarrier.getCount() != 0)
+        {
+            terminationBarrier.await(200, TimeUnit.MILLISECONDS);
+            deadlockDetection(threadState);
         }
 
         if(threadState.anyFailedThreads())
         {
             throw new FailedThreadsException(threadState.threadFailures());
+        }
+    }
+
+    private void deadlockDetection(final TestThreadState threadState) {
+        final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+        final long[] threadIds = bean.findDeadlockedThreads(); // Returns null if no threads are deadlocked.
+        if (threadIds != null) {
+            final HashMap<Thread, Object> threadWaitConditions = threadState.threadWaitConditions();
+            throw new DeadlockDetectedException(threadWaitConditions);
         }
     }
 }

@@ -46,7 +46,7 @@ import com.lexicalscope.contest.TestRun;
         context.executing(new TestRun() {{
             action(Add).is(queue).offer(item);
 
-            action(Remove).receive(dequeuedItems).from(queue).take();
+            action(Remove).take(dequeuedItems).from(queue).take();
         }});
     }
 

@@ -38,7 +38,7 @@ public class ThreadRecord {
     }
 
     public ChannelRecord<Object> receive(final Channel<Object> channel) {
-        return action(new Object()).receive(channel);
+        return action(new Object()).take(channel);
     }
 
     public ChannelRecord<Object> poll(final Channel<Object> channel) {

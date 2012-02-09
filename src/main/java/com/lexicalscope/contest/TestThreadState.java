@@ -3,7 +3,10 @@ package com.lexicalscope.contest;
 import static java.lang.Thread.currentThread;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.CountDownLatch;
 
 /*
  * Copyright 2011 Tim Wood
@@ -24,23 +27,29 @@ import java.util.Map;
 public class TestThreadState {
     private final HashMap<Thread, Throwable> failedThreads = new HashMap<Thread, Throwable>();
     private final HashMap<Thread, Object> blockedThreads = new HashMap<Thread, Object>();
-    private int runningThreads;
+    private final CountDownLatch terminationBarrier;
 
-    public synchronized void threads(final int size) {
-        runningThreads = size;
-    }
-
-    public synchronized void threadFinished()
-    {
-        runningThreads--;
+    public TestThreadState(final CountDownLatch terminationBarrier) {
+        this.terminationBarrier = terminationBarrier;
     }
 
     public synchronized void threadBlocked(final Thread thread, final Object action)
     {
         blockedThreads.put(thread, action);
-        if(blockedThreads.size() == runningThreads)
+        if(blockedThreads.size() == terminationBarrier.getCount())
         {
-            throw new DeadlockDetectedException(new HashMap<Thread, Object>(blockedThreads));
+            throw new DeadlockDetectedException(threadWaitConditions());
+        }
+    }
+
+    public synchronized void unblock(final Object action) {
+        final Iterator<Entry<Thread, Object>> it = blockedThreads.entrySet().iterator();
+        while (it.hasNext()) {
+            final Entry<Thread, Object> blocked = it.next();
+            if(blocked.getValue().equals(action))
+            {
+                it.remove();
+            }
         }
     }
 
@@ -63,5 +72,9 @@ public class TestThreadState {
     public synchronized Map<Thread, Throwable> threadFailures()
     {
         return new HashMap<Thread, Throwable>(failedThreads);
+    }
+
+    public synchronized HashMap<Thread, Object> threadWaitConditions() {
+        return new HashMap<Thread, Object>(blockedThreads);
     }
 }
